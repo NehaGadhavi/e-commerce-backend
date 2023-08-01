@@ -20,6 +20,4 @@ export class CartProductsEntity {
   @Column()
   status: string;
 
-  @Column({ type: 'integer' })
-  roles: ProductCategory;
 }

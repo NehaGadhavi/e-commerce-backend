@@ -31,5 +31,5 @@ export class ProductsEntity {
   quantity: number;
 
   @Column({ type: 'integer' })
-  roles: ProductCategory;
+  category: ProductCategory;
 }

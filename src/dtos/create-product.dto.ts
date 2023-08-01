@@ -24,12 +24,8 @@ export class CreateProductDto{
     quantity: number;
 
     @ApiProperty()
-    status: string;
-
-    @ApiProperty()
     @IsNotEmpty()
     category: string;
-    // category: ProductCategory;
 
 }
 
@@ -53,8 +49,10 @@ export class updateProductDto{
     quantity: number;
 
     @ApiProperty()
-    status: string;
-
-    @ApiProperty()
     category: string;
+}
+
+export class cartProductDto extends CreateProductDto{
+    @ApiProperty()
+    status: string;
 }
