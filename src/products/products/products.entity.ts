@@ -1,23 +1,37 @@
-import { UsersEntity } from "src/users/users/users.entity";
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { UsersEntity } from 'src/users/users/users.entity';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { CartProductsEntity } from './cart-products.entity';
+import { ProductCategory } from 'src/product-category.enum';
 
 @Entity('products')
-export class ProductsEntity{
-    @PrimaryGeneratedColumn()
-    id: number;
+export class ProductsEntity {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    product_name: string;
+  @Column()
+  product_name: string;
 
-    @Column()
-    description: string;
+  @Column()
+  description: string;
 
-    @Column()
-    price: number;
+  @Column()
+  price: number;
 
-    @Column()
-    product_img: string;
+  @Column()
+  product_img: string;
 
-    @ManyToOne(() => UsersEntity, (users) => users.products)
-    purchased_by: UsersEntity
+  @OneToMany(() => CartProductsEntity, (cartProducts) => cartProducts.products)
+  cartProducts: CartProductsEntity;
+
+  @Column()
+  quantity: number;
+
+  @Column({ type: 'integer' })
+  roles: ProductCategory;
 }

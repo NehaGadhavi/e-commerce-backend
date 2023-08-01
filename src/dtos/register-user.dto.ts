@@ -1,9 +1,12 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, MinLength, MaxLength, Matches, IsString, IsEmail } from "class-validator";
 
 export class RegisterUserDto {
+    @ApiProperty()
     @IsNotEmpty()
     username: string;
     
+    @ApiProperty()
     @IsNotEmpty()
     @IsString()
     @Matches(/(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).*$/, {
@@ -11,20 +14,12 @@ export class RegisterUserDto {
     })
     password: string;
 
-    // @IsNotEmpty()
-    // @IsString()
-    // @Matches(/(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).*$/, {
-    //   message: "Confirm password must contain 8-10 characters, Confirm password must include numbers."
-    // })
-    // confirm_password: string;
-
+    @ApiProperty()
     @IsNotEmpty()
     @IsEmail()
     email: string;
   
+    @ApiProperty()
     roles: string;
 
-    items_purchased: number;
-
-    total_payment: number;
   }

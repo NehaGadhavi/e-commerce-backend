@@ -13,6 +13,7 @@ export class AuthService {
     private jwtService: JwtService,){}
 
     async loginUser(userLoginDTO: UserLoginDto){
+        console.log(userLoginDTO);
         const { username, password } = userLoginDTO;
 
         const user = await this.userRepository.findOne({
