@@ -1,8 +1,6 @@
-import { UsersEntity } from 'src/users/users/users.entity';
 import {
   Column,
   Entity,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';

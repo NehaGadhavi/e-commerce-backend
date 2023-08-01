@@ -1,7 +1,5 @@
-import { IsNotEmpty, isNotEmpty } from "class-validator";
-import { UsersEntity } from "src/users/users/users.entity";
+import { IsNotEmpty } from "class-validator";
 import { ApiProperty } from '@nestjs/swagger';
-import { ProductCategory } from "src/product-category.enum";
 
 export class CreateProductDto{
     @ApiProperty()

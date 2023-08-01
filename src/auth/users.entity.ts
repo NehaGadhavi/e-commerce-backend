@@ -1,5 +1,5 @@
-import { CartProductsEntity } from 'src/products/products/cart-products.entity';
-import { ProductsEntity } from 'src/products/products/products.entity';
+import { CartProductsEntity } from 'src/products/cart-products.entity';
+import { ProductsEntity } from 'src/products/products.entity';
 import { UserRoles } from 'src/user-roles.enum';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 

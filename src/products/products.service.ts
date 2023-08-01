@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductsEntity } from './products.entity';
 import { Repository } from 'typeorm';
-import { UsersEntity } from 'src/users/users/users.entity';
+import { UsersEntity } from 'src/auth/users.entity';
 import {
   CreateProductDto,
   updateProductDto,

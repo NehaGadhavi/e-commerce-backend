@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, ValidationPipe } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { UsersEntity } from 'src/users/users/users.entity';
+import { UsersEntity } from 'src/auth/users.entity';
 import { User } from 'src/user.decorator';
 import { CreateProductDto, updateProductDto } from 'src/dtos/create-product.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
