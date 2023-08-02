@@ -1,5 +1,6 @@
 import { IsNotEmpty } from "class-validator";
 import { ApiProperty } from '@nestjs/swagger';
+import { ProductCategory } from "src/product-category.enum";
 
 export class CreateProductDto{
     @ApiProperty()
@@ -25,6 +26,6 @@ export class CreateProductDto{
 
     @ApiProperty()
     @IsNotEmpty()
-    category: string;
+    category: ProductCategory;
 
 }

@@ -8,13 +8,13 @@ export class UsersEntity extends BaseEntity {
   @PrimaryGeneratedColumn({ comment: 'PK Auto Increment' })
   id: number;
 
-  @Column({ nullable: false })
+  @Column({ default: ''})
   username: string;
 
-  @Column({ nullable: false })
+  @Column({ default: ''})
   email: string;
 
-  @Column({ nullable: false })
+  @Column({ default: ''})
   password: string;
 
   @Column({ type: 'integer', default: UserRoles.Customer })
@@ -23,12 +23,12 @@ export class UsersEntity extends BaseEntity {
   @OneToMany(() => CartProductsEntity, (cartProducts) => cartProducts.users )
   cartProducts: CartProductsEntity[];
 
-  @Column()
+  @Column({ default: ''})
   gender: string;
 
   @Column({ type: 'date', nullable: true })
   dob: Date;
 
-  @Column()
+  @Column({ default: ''})
   address: string;
 }

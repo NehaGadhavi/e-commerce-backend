@@ -24,6 +24,7 @@ export class ProductsService {
 
   //methods for products table
   async getAllProducts(user: UsersEntity) {
+    // console.log(user);
     return await this.productsRepository.find();
   }
 
@@ -38,8 +39,10 @@ export class ProductsService {
     product.description = productDto.description;
     product.product_img = productDto.product_img;
     product.quantity = productDto.quantity;
+    product.category = productDto.category;
 
     this.productsRepository.create(product);
+    console.log('product',product);
     try {
       return await this.productsRepository.save(product);
     } catch (err) {

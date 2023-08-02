@@ -13,16 +13,16 @@ export class ProductsEntity extends BaseEntity{
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ default: ''})
   product_name: string;
 
-  @Column()
+  @Column({ default: ''})
   description: string;
 
   @Column()
   price: number;
 
-  @Column()
+  @Column({ default: ''})
   product_img: string;
 
   @OneToMany(() => CartProductsEntity, (cartProducts) => cartProducts.products)
@@ -31,6 +31,6 @@ export class ProductsEntity extends BaseEntity{
   @Column()
   quantity: number;
 
-  @Column({ type: 'integer' })
+  @Column({ type: 'integer', nullable: true })
   category: ProductCategory;
 }

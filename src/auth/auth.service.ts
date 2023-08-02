@@ -4,6 +4,7 @@ import {
   HttpStatus,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,6 +15,8 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { RegisterUserDto } from 'src/dtos/register-user.dto';
 import { JwtExePayload, ResponseMap, expired } from 'src/constants';
+import { UserRoles } from 'src/user-roles.enum';
+import { UpdateAdminDto } from 'src/dtos/update-admin.dto';
 
 @Injectable()
 export class AuthService {
@@ -127,5 +130,74 @@ export class AuthService {
       access_token,
       expires: expired,
     };
+  }
+
+
+  async getAllUsers(user: UsersEntity){
+    return await this.userRepository.find();
+  }
+
+  async addAdmin(adminDto: RegisterUserDto, user: UsersEntity){
+    try {
+      const hashed = await bcrypt.hash(adminDto.password, 12);
+
+      const foundUser = await this.userRepository.findOne({
+        where: { email: adminDto.email },
+      });
+
+      if (foundUser) {
+        throw new BadRequestException('Username already taken.');
+      }
+
+      const admin = await this.userRepository.save({
+        username: adminDto.username,
+        password: hashed,
+        email: adminDto.email,
+        gender: adminDto.gender,
+        dob: adminDto.dob,
+        address: adminDto.address,
+        roles: UserRoles.ViewerAdmin,
+      });
+
+      const { password, ...savedUser } = admin;
+      return { data: savedUser };
+    } catch (err) {
+      throw new HttpException(
+        err,
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async removeAdmin(id: number){
+    const result = await this.userRepository.delete({ id });
+    if (result.affected === 0) {
+      throw new NotFoundException('Admin not removed!');
+    } else {
+      return { success: true };
+    }
+  }
+
+  async updateAdmin(id: number, adminDto: UpdateAdminDto, user: UsersEntity) {
+    const admin = await this.userRepository.findOne({ where: { id } });
+
+    if (!admin) {
+      throw new NotFoundException('Admin not found!');
+    }
+
+    Object.keys(adminDto).forEach((key) => {
+      if (adminDto[key] !== undefined) {
+        admin[key] = adminDto[key];
+      }
+    });
+
+    console.log(admin);
+
+    try {
+      const savedAdmin = await this.userRepository.save(admin);
+      return { data: savedAdmin };
+    } catch (err) {
+      throw new InternalServerErrorException('Something went wrong!');
+    }
   }
 }
