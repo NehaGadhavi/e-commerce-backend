@@ -12,7 +12,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         super({
             clientID: GOOGLE_CLIENT_ID,
             clientSecret: GOOGLE_SECRET,
-            callbackURL: 'http://localhost:3003/auth/google/callback',
+            callbackURL: 'http://localhost:8000/auth/google/callback',
             scope: ['email', 'profile'],
         });
     }
@@ -22,7 +22,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
             email: emails[0].value,
             firstName: name.givenName,
             lastName: name.familyName,
-            accessToken
+            google_access_token: accessToken
         };
         done(null, user);
     }

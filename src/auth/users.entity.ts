@@ -1,10 +1,10 @@
 import { CartProductsEntity } from 'src/products/cart-products.entity';
 import { ProductsEntity } from 'src/products/products.entity';
 import { UserRoles } from 'src/user-roles.enum';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('users')
-export class UsersEntity {
+export class UsersEntity extends BaseEntity {
   @PrimaryGeneratedColumn({ comment: 'PK Auto Increment' })
   id: number;
 

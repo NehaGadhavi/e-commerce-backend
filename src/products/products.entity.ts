@@ -1,4 +1,5 @@
 import {
+  BaseEntity,
   Column,
   Entity,
   OneToMany,
@@ -8,7 +9,7 @@ import { CartProductsEntity } from './cart-products.entity';
 import { ProductCategory } from 'src/product-category.enum';
 
 @Entity('products')
-export class ProductsEntity {
+export class ProductsEntity extends BaseEntity{
   @PrimaryGeneratedColumn()
   id: number;
 
