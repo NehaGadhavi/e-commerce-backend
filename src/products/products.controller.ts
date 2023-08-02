@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards, ValidationPipe } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { UsersEntity } from 'src/auth/users.entity';
 import { User } from 'src/user.decorator';
-import { CreateProductDto, updateProductDto } from 'src/dtos/create-product.dto';
+import { CreateProductDto } from 'src/dtos/create-product.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { updateProductDto } from 'src/dtos/update-product.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags("Products")
 @Controller('products')

@@ -22,4 +22,10 @@ export class RegisterUserDto {
     @ApiProperty()
     roles: string;
 
+    dob: Date;
+
+    gender: string;
+
+    address: string;
+
   }

@@ -9,9 +9,9 @@ import { Repository } from 'typeorm';
 import { UsersEntity } from 'src/auth/users.entity';
 import {
   CreateProductDto,
-  updateProductDto,
 } from 'src/dtos/create-product.dto';
 import { CartProductsEntity } from './cart-products.entity';
+import { updateProductDto } from 'src/dtos/update-product.dto';
 
 @Injectable()
 export class ProductsService {

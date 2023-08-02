@@ -20,12 +20,15 @@ export class UsersEntity extends BaseEntity {
   @Column({ type: 'integer', default: UserRoles.Customer })
   roles: UserRoles;
 
-  // @Column({ nullable: true })
-  // items_purchased: number;
-
-  // @Column({ nullable: true })
-  // total_payment: number;
-
   @OneToMany(() => CartProductsEntity, (cartProducts) => cartProducts.users )
   cartProducts: CartProductsEntity[];
+
+  @Column()
+  gender: string;
+
+  @Column({ type: 'date', nullable: true })
+  dob: Date;
+
+  @Column()
+  address: string;
 }

@@ -67,6 +67,9 @@ export class AuthService {
         username: registerUserDto.username,
         password: hashed,
         email: registerUserDto.email,
+        gender: registerUserDto.gender,
+        dob: registerUserDto.dob,
+        address: registerUserDto.address,
       });
 
       const { password, ...savedUser } = user;
