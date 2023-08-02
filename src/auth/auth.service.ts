@@ -42,7 +42,7 @@ export class AuthService {
         const { username, password, email } = registerUserDto;
         const hashed = await bcrypt.hash(password, 12);
 
-        const foundUser = await this.userRepository.findOne({ where: { username } });
+        const foundUser = await this.userRepository.findOne({ where: { email } });
 
         if (foundUser) {
             throw new BadRequestException('Username already taken.')
