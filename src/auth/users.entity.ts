@@ -1,6 +1,5 @@
 import { CartProductsEntity } from 'src/products/cart-products.entity';
-import { ProductsEntity } from 'src/products/products.entity';
-import { UserRoles } from 'src/user-roles.enum';
+import { UserRoles } from 'src/utils/enums';
 import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('users')

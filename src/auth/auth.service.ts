@@ -14,9 +14,9 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { RegisterUserDto } from 'src/dtos/register-user.dto';
-import { JwtExePayload, ResponseMap, expired } from 'src/constants';
-import { UserRoles } from 'src/user-roles.enum';
 import { UpdateAdminDto } from 'src/dtos/update-admin.dto';
+import { JwtExePayload, ResponseMap, expired } from 'src/utils/constants';
+import { UserRoles } from 'src/utils/enums';
 
 @Injectable()
 export class AuthService {

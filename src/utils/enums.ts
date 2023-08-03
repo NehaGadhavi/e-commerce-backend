@@ -3,3 +3,8 @@ export enum UserRoles{
     ViewerAdmin = 1,
     Customer = 2
 }
+
+export enum ProductCategory{
+    Men = 0,
+    Women = 1
+}

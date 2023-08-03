@@ -1,7 +1,6 @@
 import { UsersEntity } from 'src/auth/users.entity';
 import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ProductsEntity } from './products.entity';
-import { ProductCategory } from 'src/product-category.enum';
 
 @Entity('cart_products')
 export class CartProductsEntity extends BaseEntity{

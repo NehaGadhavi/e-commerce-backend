@@ -1,31 +1,30 @@
-import { IsNotEmpty } from "class-validator";
+import { IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { ProductCategory } from "src/product-category.enum";
+import { ProductCategory } from 'src/utils/enums';
 
-export class CreateProductDto{
-    @ApiProperty()
-    id: number;
+export class CreateProductDto {
+  @ApiProperty()
+  id: number;
 
-    @ApiProperty()
-    @IsNotEmpty()
-    product_name: string;
+  @ApiProperty()
+  @IsNotEmpty()
+  product_name: string;
 
-    @ApiProperty()
-    @IsNotEmpty()
-    price: number;
+  @ApiProperty()
+  @IsNotEmpty()
+  price: number;
 
-    @ApiProperty()
-    description: string;
+  @ApiProperty()
+  description: string;
 
-    @ApiProperty()
-    product_img: string;
+  @ApiProperty()
+  product_img: string;
 
-    @ApiProperty()
-    @IsNotEmpty()
-    quantity: number;
+  @ApiProperty()
+  @IsNotEmpty()
+  quantity: number;
 
-    @ApiProperty()
-    @IsNotEmpty()
-    category: ProductCategory;
-
+  @ApiProperty()
+  @IsNotEmpty()
+  category: ProductCategory;
 }
