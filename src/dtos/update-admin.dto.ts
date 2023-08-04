@@ -20,7 +20,7 @@ export class UpdateAdminDto {
     roles: string;
 
     @ApiProperty()
-    dob: Date;
+    dob: string;
 
     @ApiProperty()
     gender: string;

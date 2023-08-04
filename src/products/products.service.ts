@@ -1,4 +1,6 @@
 import {
+  HttpException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -7,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ProductsEntity } from './products.entity';
 import { Repository } from 'typeorm';
 import { UsersEntity } from 'src/auth/users.entity';
-import { CreateProductDto } from 'src/dtos/create-product.dto';
+import { CreateProductDto, UpdateDTO } from 'src/dtos/create-product.dto';
 import { CartProductsEntity } from './cart-products.entity';
 import { updateProductDto } from 'src/dtos/update-product.dto';
 
@@ -25,12 +27,19 @@ export class ProductsService {
     page: number = 1,
     limit: number = 10,
   ): Promise<ProductsEntity[]> {
-    const skip = (page - 1) * limit;
+    try {
+      const skip = (page - 1) * limit;
 
-    return this.productsRepository.find({
-      take: limit,
-      skip,
-    });
+      return this.productsRepository.find({
+        take: limit,
+        skip,
+      });
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async getProduct(user: UsersEntity, id: number) {
@@ -42,98 +51,134 @@ export class ProductsService {
     user: UsersEntity,
     image: Express.Multer.File,
   ) {
-    const product = new ProductsEntity();
-    product.product_name = productDto.product_name;
-    product.price = productDto.price;
-    product.description = productDto.description;
-    product.quantity = productDto.quantity;
-    product.category = productDto.category;
-
-    // Save the image path or link to the database
-    if (image.filename) {
-      product.product_img = 'uploads/' + image.filename;
-    } else {
-      product.product_img = '';
-    }
-
-    console.log(product);
-
     try {
+      const product = new ProductsEntity();
+      product.product_name = productDto.product_name;
+      product.price = productDto.price;
+      product.description = productDto.description;
+      product.quantity = productDto.quantity;
+      product.category = productDto.category;
+
+      // Save the image path or link to the database
+      if (image.filename) {
+        product.product_img = 'uploads/' + image.filename;
+      } else {
+        product.product_img = '';
+      }
+
+      // const savedProduct = await this.productsRepository.save({
+      //   product_name: productDto.product_name,
+      //   price: productDto.price,
+      //   description: productDto.description,
+      //   quantity: productDto.quantity,
+      //   category: productDto.category,
+      //   product_img: 'uploads/' + image.filename || '',
+      // });
+
+      // console.log(savedProduct);
+
       return await this.productsRepository.save(product);
-    } catch (err) {
-      console.log(err.stack);
-      throw new InternalServerErrorException(
-        'Something went wrong, product not added!',
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
   async searchText(req) {
-    console.log(req.query);
-    const builder = await this.productsRepository.createQueryBuilder(
-      'products',
-    );
+    try {
+      console.log(req.query);
+      const builder = await this.productsRepository.createQueryBuilder(
+        'products',
+      );
 
-    if (req.query.search) {
-      builder.where(
-        'products.product_name LIKE :s OR products.description LIKE :s',
-        { s: `%${req.query.search}%` },
+      if (req.query.search) {
+        builder.where(
+          'products.product_name LIKE :s OR products.description LIKE :s',
+          { s: `%${req.query.search}%` },
+        );
+      }
+
+      const sort: any = req.query.sort;
+
+      if (sort) {
+        builder.orderBy('products.price', sort.toUpperCase());
+      }
+
+      const page: number = parseInt(req.query.page as any) || 1;
+      const perPage = parseInt(req.query.limit as any) || 5;
+      const total = await builder.getCount();
+
+      builder.offset((page - 1) * perPage).limit(perPage);
+
+      return {
+        data: await builder.getMany(),
+        total,
+        page,
+        last_page: Math.ceil(total / perPage),
+      };
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-
-    const sort: any = req.query.sort;
-
-    if (sort) {
-      builder.orderBy('products.price', sort.toUpperCase());
-    }
-
-    const page: number = parseInt(req.query.page as any) || 1;
-    const perPage = parseInt(req.query.limit as any) || 5;
-    const total = await builder.getCount();
-
-    builder.offset((page - 1) * perPage).limit(perPage);
-
-    return {
-      data: await builder.getMany(),
-      total,
-      page,
-      last_page: Math.ceil(total / perPage),
-    };
   }
 
   async updateProduct(
     id: number,
-    ProductDto: updateProductDto,
+    ProductDto: UpdateDTO,
     user: UsersEntity,
-  ): Promise<ProductsEntity> {
-    const product = await this.productsRepository.findOne({ where: { id } });
-
-    if (!product) {
-      throw new NotFoundException('Product not found!');
-    }
-
-    Object.keys(ProductDto).forEach((key) => {
-      if (ProductDto[key] !== undefined) {
-        product[key] = ProductDto[key];
-      }
-    });
-
-    console.log(product);
-
+    image: Express.Multer.File,
+  ) {
     try {
+      console.log("ddd",ProductDto);
+      
+
+      const product = await this.productsRepository.findOne({ where: { id } });
+
+      if (!product) {
+        throw new NotFoundException('Product not found!');
+      }
+
+      Object.keys(ProductDto).forEach((key) => {
+        if (ProductDto[key]) {
+          product[key] = ProductDto[key];
+        }
+      });
+      // Update the image path or link to the database
+      if (image.filename) {
+        product.product_img = 'uploads/' + image.filename;
+      } else {
+        product.product_img = '';
+      }
+
+      console.log(product);
+
       await this.productsRepository.save(product);
       return product;
-    } catch (err) {
-      throw new InternalServerErrorException('Something went wrong!');
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   async removeProduct(id: number, user: UsersEntity) {
-    const result = await this.productsRepository.delete({ id });
-    if (result.affected === 0) {
-      throw new NotFoundException('Product not removed!');
-    } else {
-      return { success: true };
+    try {
+      const result = await this.productsRepository.delete({ id });
+      if (result.affected === 0) {
+        throw new NotFoundException('Product not removed!');
+      } else {
+        return { success: true };
+      }
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -144,39 +189,46 @@ export class ProductsService {
 
   async addToCart(
     id: number,
-    productToAdd: updateProductDto,
+    productToAdd: UpdateDTO,
     user: UsersEntity,
   ) {
-    const product = await this.productsRepository.findOne({ where: { id } });
-
-    /*update quantity*/
-    if (productToAdd.quantity) {
-      const { quantity } = productToAdd;
-      const updatedQuantity = product.quantity - productToAdd.quantity;
-      productToAdd.quantity = updatedQuantity;
-      // console.log(updatedQuantity);
-      this.updateProduct(id, productToAdd, user);
-      product.quantity = quantity;
-    } else {
-      throw new Error('Quality not added!! Please add quality.');
-    }
-
     try {
+      const product = await this.productsRepository.findOne({ where: { id } });
+
+      /*update quantity*/
+      if (productToAdd.quantity) {
+        const { quantity } = productToAdd;
+        const updatedQuantity = product.quantity - productToAdd.quantity;
+        productToAdd.quantity = updatedQuantity;
+        // console.log(updatedQuantity);
+        this.updateProduct(id, productToAdd, user, productToAdd.product_img);
+        product.quantity = quantity;
+      } else {
+        throw new Error('Quality not added!! Please add quality.');
+      }
+
       return await this.cartProductRepository.save(product);
-    } catch (err) {
-      console.log(err.stack);
-      throw new InternalServerErrorException(
-        'Something went wrong, product not added to Cart!',
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
   async removeFromCart(id: number, user: UsersEntity) {
-    const result = await this.cartProductRepository.delete({ id });
-    if (result.affected === 0) {
-      throw new NotFoundException('Product not removed from cart!');
-    } else {
-      return { success: true };
+    try {
+      const result = await this.cartProductRepository.delete({ id });
+      if (result.affected === 0) {
+        throw new NotFoundException('Product not removed from cart!');
+      } else {
+        return { success: true };
+      }
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

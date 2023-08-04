@@ -1,5 +1,5 @@
 import { IsNotEmpty } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { ProductCategory } from 'src/utils/enums';
 
 export class CreateProductDto {
@@ -18,7 +18,7 @@ export class CreateProductDto {
   description: string;
 
   @ApiProperty()
-  product_img: string;
+  product_img: Express.Multer.File;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -28,3 +28,5 @@ export class CreateProductDto {
   @IsNotEmpty()
   category: ProductCategory;
 }
+
+export class UpdateDTO extends PartialType(CreateProductDto){}

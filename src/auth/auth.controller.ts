@@ -26,6 +26,7 @@ import { UsersEntity } from './users.entity';
 import { UpdateAdminDto } from 'src/dtos/update-admin.dto';
 import { UserRoles } from 'src/utils/enums';
 import { API } from 'src/utils/swagger.constants';
+import { Request } from 'express';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -89,8 +90,8 @@ export class AuthController {
   // ANCHOR - ADD ADMIN
   @ApiOperation({ summary: 'Add Admin' })
   @Post('add_admin')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
   async addAdmin(
     @Body(ValidationPipe) adminDto: RegisterUserDto,
     @User() user: UsersEntity,
@@ -106,8 +107,8 @@ export class AuthController {
   // ANCHOR - REMOVE ADMIN
   @ApiOperation({ summary: 'Remove Admin' })
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
   async removeAdmin(@Param('id') id: number) {
     return await this.authService.removeAdmin(id);
   }
@@ -120,8 +121,8 @@ export class AuthController {
   // ANCHOR - ADD ADMIN
   @ApiOperation({ summary: 'Update Admin' })
   @Patch('update/:id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
   async updateAdmin(
     @Body(ValidationPipe) admin: UpdateAdminDto,
     @Param('id') id: number,

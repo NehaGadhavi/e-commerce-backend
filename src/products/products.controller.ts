@@ -17,7 +17,7 @@ import {
 import { ProductsService } from './products.service';
 import { UsersEntity } from 'src/auth/users.entity';
 import { User } from 'src/user.decorator';
-import { CreateProductDto } from 'src/dtos/create-product.dto';
+import { CreateProductDto, UpdateDTO } from 'src/dtos/create-product.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { updateProductDto } from 'src/dtos/update-product.dto';
 import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
@@ -67,20 +67,23 @@ export class ProductsController {
     @UploadedFile() image: Express.Multer.File,
     @User() user: UsersEntity,
   ) {
-    console.log(image);
     return await this.productsService.addProduct(productDto, user, image);
   }
 
   @ApiOperation({ summary: 'Update product' })
   @Patch('update_product/:id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
+  @UseInterceptors(FileInterceptor('product_img', multerConfig))
   async updateProduct(
-    @Body(ValidationPipe) product: updateProductDto,
-    @Param('id') id: number,
+    @Req() req: Request,
+    @Body(ValidationPipe) product: UpdateDTO,
+    @UploadedFile() image: Express.Multer.File,
     @User() user: UsersEntity,
   ) {
-    return await this.productsService.updateProduct(id, product, user);
+    console.log("id",req.params.id);
+    console.log("image", image);
+    console.log("updateProductDto",product);
+    
+    return await this.productsService.updateProduct(Number(req.params.id), product, user, image);
   }
 
   @ApiOperation({ summary: 'Remove product' })
@@ -106,7 +109,7 @@ export class ProductsController {
   // @Roles(UserRoles.Customer) // Restrict to Customer role
   async addToCart(
     @Param('id') id: number,
-    @Body(ValidationPipe) product: updateProductDto,
+    @Body(ValidationPipe) product: UpdateDTO,
     @User() user: UsersEntity,
   ) {
     return await this.productsService.addToCart(id, product, user);

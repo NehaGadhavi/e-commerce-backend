@@ -25,8 +25,8 @@ export class UsersEntity extends BaseEntity {
   @Column({ default: ''})
   gender: string;
 
-  @Column({ type: 'date', nullable: true })
-  dob: Date;
+  @Column()
+  dob: string;
 
   @Column({ default: ''})
   address: string;

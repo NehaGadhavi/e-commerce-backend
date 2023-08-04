@@ -10,13 +10,14 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserLoginDto } from 'src/dtos/user-login.dto';
 import { UsersEntity } from 'src/auth/users.entity';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { RegisterUserDto } from 'src/dtos/register-user.dto';
 import { UpdateAdminDto } from 'src/dtos/update-admin.dto';
 import { JwtExePayload, ResponseMap, expired } from 'src/utils/constants';
 import { UserRoles } from 'src/utils/enums';
+import { omit } from 'lodash';
 
 @Injectable()
 export class AuthService {
@@ -27,30 +28,37 @@ export class AuthService {
   ) {}
 
   async loginUser(userLoginDTO: UserLoginDto) {
-    const { email, password } = userLoginDTO;
+    try {
+      const { email, password } = userLoginDTO;
 
-    const user = await this.userRepository.findOne({
-      where: { email },
-    });
-
-    if (!user) {
-      throw new UnauthorizedException('No user found');
-    }
-
-    const userId = user.id;
-    const roles = user.roles;
-
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
-
-    if (isPasswordMatch) {
-      const jwtPayload = { email, userId, roles }; // added token details
-      const jwtToken = await this.jwtService.signAsync(jwtPayload, {
-        expiresIn: '1d',
-        algorithm: 'HS512',
+      const user = await this.userRepository.findOne({
+        where: { email },
       });
-      return { data: { token: jwtToken } };
-    } else {
-      throw new UnauthorizedException('Invalid credentials.');
+
+      if (!user) {
+        throw new UnauthorizedException('No user found');
+      }
+
+      const userId = user.id;
+      const roles = user.roles;
+
+      const isPasswordMatch = await bcrypt.compare(password, user.password);
+
+      if (isPasswordMatch) {
+        const jwtPayload = { email, userId, roles }; // added token details
+        const jwtToken = await this.jwtService.signAsync(jwtPayload, {
+          expiresIn: '1d',
+          algorithm: 'HS512',
+        });
+        return { data: { token: jwtToken } };
+      } else {
+        throw new UnauthorizedException('Invalid credentials.');
+      }
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -132,12 +140,26 @@ export class AuthService {
     };
   }
 
+  async getAllUsers(user: UsersEntity) {
+    let users;
 
-  async getAllUsers(user: UsersEntity){
-    return await this.userRepository.find();
+    if (user.roles === UserRoles.SuperAdmin) {
+      users = await this.userRepository.find();
+    }
+    if (user.roles === UserRoles.ViewerAdmin) {
+      users = await this.userRepository.find({
+        where: {
+          roles: Not(UserRoles.SuperAdmin),
+        },
+      });
+    }
+
+    const transformedUsers = users.map((user) => omit(user, 'password'));
+
+    return { data: transformedUsers };
   }
 
-  async addAdmin(adminDto: RegisterUserDto, user: UsersEntity){
+  async addAdmin(adminDto: RegisterUserDto, user: UsersEntity) {
     try {
       const hashed = await bcrypt.hash(adminDto.password, 12);
 
@@ -169,35 +191,45 @@ export class AuthService {
     }
   }
 
-  async removeAdmin(id: number){
-    const result = await this.userRepository.delete({ id });
-    if (result.affected === 0) {
-      throw new NotFoundException('Admin not removed!');
-    } else {
-      return { success: true };
+  async removeAdmin(id: number) {
+    try {
+      const result = await this.userRepository.delete({ id });
+      if (result.affected === 0) {
+        throw new NotFoundException('Admin not removed!');
+      } else {
+        return { success: true };
+      }
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   async updateAdmin(id: number, adminDto: UpdateAdminDto, user: UsersEntity) {
-    const admin = await this.userRepository.findOne({ where: { id } });
-
-    if (!admin) {
-      throw new NotFoundException('Admin not found!');
-    }
-
-    Object.keys(adminDto).forEach((key) => {
-      if (adminDto[key] !== undefined) {
-        admin[key] = adminDto[key];
-      }
-    });
-
-    console.log(admin);
-
     try {
+      const admin = await this.userRepository.findOne({ where: { id } });
+
+      if (!admin) {
+        throw new NotFoundException('Admin not found!');
+      }
+
+      Object.keys(adminDto).forEach((key) => {
+        if (adminDto[key] !== undefined) {
+          admin[key] = adminDto[key];
+        }
+      });
+
+      // console.log(admin);
+
       const savedAdmin = await this.userRepository.save(admin);
       return { data: savedAdmin };
-    } catch (err) {
-      throw new InternalServerErrorException('Something went wrong!');
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

@@ -4,6 +4,7 @@ import { IsNotEmpty, Matches, IsString, IsEmail } from "class-validator";
 export class RegisterUserDto {
     @ApiProperty()
     @IsNotEmpty()
+    @IsString()
     username: string;
     
     @ApiProperty()
@@ -23,12 +24,14 @@ export class RegisterUserDto {
     roles: string;
 
     @ApiProperty()
-    dob: Date;
+    dob: string;
 
     @ApiProperty()
+    @IsString()
     gender: string;
 
     @ApiProperty()
+    @IsString()
     address: string;
 
   }
