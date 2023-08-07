@@ -13,8 +13,7 @@ import { UsersEntity } from 'src/auth/users.entity';
 import { Not, Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { RegisterUserDto } from 'src/dtos/register-user.dto';
-import { UpdateAdminDto } from 'src/dtos/update-admin.dto';
+import { RegisterUserDto, UpdateAdminDto } from 'src/dtos/user.dto';
 import { JwtExePayload, ResponseMap, expired } from 'src/utils/constants';
 import { UserRoles } from 'src/utils/enums';
 import { omit } from 'lodash';
@@ -85,10 +84,10 @@ export class AuthService {
 
       const { password, ...savedUser } = user;
       return { data: savedUser };
-    } catch (err) {
+    } catch (error) {
       throw new HttpException(
-        err,
-        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -141,22 +140,31 @@ export class AuthService {
   }
 
   async getAllUsers(user: UsersEntity) {
-    let users;
+    try {
+      const users = await this.userRepository.find();
+      return { users: users };
+      // let users;
 
-    if (user.roles === UserRoles.SuperAdmin) {
-      users = await this.userRepository.find();
+      // if (user.roles === UserRoles.SuperAdmin) {
+      //   users = await this.userRepository.find();
+      // }
+      // if (user.roles === UserRoles.ViewerAdmin) {
+      //   users = await this.userRepository.find({
+      //     where: {
+      //       roles: Not(UserRoles.SuperAdmin),
+      //     },
+      //   });
+      // }
+
+      // const transformedUsers = users.map((user) => omit(user, 'password'));
+
+      // return { data: transformedUsers };
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-    if (user.roles === UserRoles.ViewerAdmin) {
-      users = await this.userRepository.find({
-        where: {
-          roles: Not(UserRoles.SuperAdmin),
-        },
-      });
-    }
-
-    const transformedUsers = users.map((user) => omit(user, 'password'));
-
-    return { data: transformedUsers };
   }
 
   async addAdmin(adminDto: RegisterUserDto, user: UsersEntity) {
@@ -183,19 +191,24 @@ export class AuthService {
 
       const { password, ...savedUser } = admin;
       return { data: savedUser };
-    } catch (err) {
+    } catch (error) {
       throw new HttpException(
-        err,
-        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
-  async removeAdmin(id: number) {
+  async removeUser(id: number) {
     try {
+      const user = await this.userRepository.findOne({ where: { id } });
+      if (user.roles === UserRoles.SuperAdmin) {
+        throw new BadRequestException('Super Admin cannot be deleted!');
+      }
+
       const result = await this.userRepository.delete({ id });
       if (result.affected === 0) {
-        throw new NotFoundException('Admin not removed!');
+        throw new NotFoundException('User not removed!');
       } else {
         return { success: true };
       }

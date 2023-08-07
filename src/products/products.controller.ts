@@ -17,9 +17,8 @@ import {
 import { ProductsService } from './products.service';
 import { UsersEntity } from 'src/auth/users.entity';
 import { User } from 'src/user.decorator';
-import { CreateProductDto, UpdateDTO } from 'src/dtos/create-product.dto';
+import { CreateProductDto, UpdateProductDto, cartProductDto } from 'src/dtos/product.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { updateProductDto } from 'src/dtos/update-product.dto';
 import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
 import { Roles } from 'src/roles/roles.decorator';
 import { RolesGuard } from 'src/roles/roles.guard';
@@ -33,10 +32,10 @@ import { Request, Response } from 'express';
 export class ProductsController {
   constructor(private productsService: ProductsService) {}
 
-  /**Api for ALL PRODUCTS */
+
   @ApiOperation({ summary: 'Get all products' })
   @Get('all')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async getAllProducts(
     @Query('page', ParseIntPipe) page: number = 1,
     @Query('limit', ParseIntPipe) limit: number = 10,
@@ -51,7 +50,7 @@ export class ProductsController {
   }
 
   @ApiOperation({ summary: 'Get product by id' })
-  @Get(':id')
+  @Get('product/:id')
   // @UseGuards(JwtAuthGuard, RolesGuard)
   async getProduct(@User() user: UsersEntity, @Param('id') id: number) {
     return await this.productsService.getProduct(user, id);
@@ -59,67 +58,80 @@ export class ProductsController {
 
   @ApiOperation({ summary: 'Add new product' })
   @Post('add_product')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
   @UseInterceptors(FileInterceptor('product_img', multerConfig)) // Handle file upload
   async addProduct(
-    @Body() productDto: CreateProductDto,
+    @Body(ValidationPipe) productDto: CreateProductDto,
     @UploadedFile() image: Express.Multer.File,
     @User() user: UsersEntity,
-  ) {
+  ) {    
     return await this.productsService.addProduct(productDto, user, image);
   }
 
   @ApiOperation({ summary: 'Update product' })
   @Patch('update_product/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
   @UseInterceptors(FileInterceptor('product_img', multerConfig))
   async updateProduct(
     @Req() req: Request,
-    @Body(ValidationPipe) product: UpdateDTO,
+    @Body(ValidationPipe) product: UpdateProductDto,
     @UploadedFile() image: Express.Multer.File,
     @User() user: UsersEntity,
   ) {
-    console.log("id",req.params.id);
-    console.log("image", image);
-    console.log("updateProductDto",product);
-    
-    return await this.productsService.updateProduct(Number(req.params.id), product, user, image);
+    return await this.productsService.updateProduct(
+      Number(req.params.id),
+      product,
+      user,
+      image,
+    );
   }
 
   @ApiOperation({ summary: 'Remove product' })
   @Delete('delete_product/:id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
   async removeProduct(@Param('id') id: number, @User() user: UsersEntity) {
     return await this.productsService.removeProduct(id, user);
   }
 
   /**Api for CART PRODUCTS */
+  
   @ApiOperation({ summary: 'Get products in cart' })
   @Get('carts')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRoles.Customer) // Restrict to Customer role
-  getAllCarts(@User() user: UsersEntity) {
-    return this.productsService.getAllCarts(user);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoles.Customer) // Restrict to Customer role
+  async getAllCarts(@User() user: UsersEntity) {    
+    return await this.productsService.getAllCarts(user);
   }
 
   @ApiOperation({ summary: 'Add to cart' })
   @Post('add_to_cart/:id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRoles.Customer) // Restrict to Customer role
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoles.Customer) // Restrict to Customer role
   async addToCart(
     @Param('id') id: number,
-    @Body(ValidationPipe) product: UpdateDTO,
+    @Body(ValidationPipe) cartDto: cartProductDto,
     @User() user: UsersEntity,
   ) {
-    return await this.productsService.addToCart(id, product, user);
+    return await this.productsService.addToCart(id, cartDto, user);
   }
 
   @ApiOperation({ summary: 'Remove from cart' })
   @Delete('delete/:id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRoles.Customer) // Restrict to Customer role
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoles.Customer) // Restrict to Customer role
   async removeFromCart(@Param('id') id: number, @User() user: UsersEntity) {
     return await this.productsService.removeFromCart(id, user);
+  }
+
+  @ApiOperation({summary: 'Purchase Product'})
+  @Get('purchase/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoles.Customer) // Restrict to Customer role
+  purchaseProduct(@Param('id') id: number,
+  @User() user: UsersEntity){
+    return this.productsService.purchaseProduct(id, user);
   }
 }

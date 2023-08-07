@@ -1,6 +1,7 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { ProductCategory } from 'src/utils/enums';
+import { CartStatus, ProductCategory } from 'src/utils/enums';
+import { Type } from 'class-transformer';
 
 export class CreateProductDto {
   @ApiProperty()
@@ -12,6 +13,7 @@ export class CreateProductDto {
 
   @ApiProperty()
   @IsNotEmpty()
+  @IsNumber()
   price: number;
 
   @ApiProperty()
@@ -22,6 +24,7 @@ export class CreateProductDto {
 
   @ApiProperty()
   @IsNotEmpty()
+  @IsNumber()
   quantity: number;
 
   @ApiProperty()
@@ -29,4 +32,16 @@ export class CreateProductDto {
   category: ProductCategory;
 }
 
-export class UpdateDTO extends PartialType(CreateProductDto){}
+export class UpdateProductDto extends PartialType(CreateProductDto){}
+
+export class cartProductDto{
+
+  @ApiProperty()
+  // @IsNumber()
+  quantity: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  status: CartStatus;
+}

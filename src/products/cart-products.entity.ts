@@ -1,6 +1,7 @@
 import { UsersEntity } from 'src/auth/users.entity';
 import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ProductsEntity } from './products.entity';
+import { CartStatus } from 'src/utils/enums';
 
 @Entity('cart_products')
 export class CartProductsEntity extends BaseEntity{
@@ -13,10 +14,10 @@ export class CartProductsEntity extends BaseEntity{
   @ManyToOne(() => ProductsEntity, (products) => products.cartProducts)
   products: ProductsEntity;
 
-  @Column()
+  @Column({nullable: true})
   quantity: number;
 
-  @Column()
-  status: string;
+  @Column({ type: 'integer', default: CartStatus.IN_CART })
+  status: CartStatus;
 
 }

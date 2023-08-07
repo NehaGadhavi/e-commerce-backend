@@ -25,7 +25,7 @@ export class UsersEntity extends BaseEntity {
   @Column({ default: ''})
   gender: string;
 
-  @Column()
+  @Column({ default: ''})
   dob: string;
 
   @Column({ default: ''})

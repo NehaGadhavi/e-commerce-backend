@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserLoginDto } from 'src/dtos/user-login.dto';
-import { RegisterUserDto } from 'src/dtos/register-user.dto';
+import { RegisterUserDto, UpdateAdminDto } from 'src/dtos/user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/roles/roles.decorator';
@@ -23,7 +23,6 @@ import { RolesGuard } from 'src/roles/roles.guard';
 import { User } from 'src/user.decorator';
 import { JwtAuthGuard } from './jwt.auth.guard';
 import { UsersEntity } from './users.entity';
-import { UpdateAdminDto } from 'src/dtos/update-admin.dto';
 import { UserRoles } from 'src/utils/enums';
 import { API } from 'src/utils/swagger.constants';
 import { Request } from 'express';
@@ -90,8 +89,8 @@ export class AuthController {
   // ANCHOR - ADD ADMIN
   @ApiOperation({ summary: 'Add Admin' })
   @Post('add_admin')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
   async addAdmin(
     @Body(ValidationPipe) adminDto: RegisterUserDto,
     @User() user: UsersEntity,
@@ -105,12 +104,12 @@ export class AuthController {
    * @returns success message
    */
   // ANCHOR - REMOVE ADMIN
-  @ApiOperation({ summary: 'Remove Admin' })
-  @Delete(':id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
-  async removeAdmin(@Param('id') id: number) {
-    return await this.authService.removeAdmin(id);
+  @ApiOperation({ summary: 'Remove User' })
+  @Delete('remove_user/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
+  async removeUser(@Param('id') id: number) {
+    return await this.authService.removeUser(id);
   }
 
   /**
@@ -120,9 +119,9 @@ export class AuthController {
    */
   // ANCHOR - ADD ADMIN
   @ApiOperation({ summary: 'Update Admin' })
-  @Patch('update/:id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
+  @Patch('update_admin/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
   async updateAdmin(
     @Body(ValidationPipe) admin: UpdateAdminDto,
     @Param('id') id: number,

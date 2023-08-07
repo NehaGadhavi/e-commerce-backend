@@ -19,7 +19,7 @@ export class ProductsEntity extends BaseEntity{
   @Column({ default: ''})
   description: string;
 
-  @Column()
+  @Column({nullable: true})
   price: number;
 
   @Column({ default: ''})
@@ -28,7 +28,7 @@ export class ProductsEntity extends BaseEntity{
   @OneToMany(() => CartProductsEntity, (cartProducts) => cartProducts.products)
   cartProducts: CartProductsEntity;
 
-  @Column()
+  @Column({nullable: true})
   quantity: number;
 
   @Column({ type: 'integer', nullable: true })
