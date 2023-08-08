@@ -26,6 +26,7 @@ import { UsersEntity } from './users.entity';
 import { UserRoles } from 'src/utils/enums';
 import { API } from 'src/utils/swagger.constants';
 import { Request } from 'express';
+import { GlobalResponseType } from 'src/utils/types';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -41,7 +42,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Sign up for users' })
   @Post('register')
   @UsePipes(ValidationPipe)
-  registration(@Body() registerUserData: RegisterUserDto) {
+  registration(@Body() registerUserData: RegisterUserDto):GlobalResponseType {
     return this.authService.registerUser(registerUserData);
   }
 
@@ -69,7 +70,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Callback api of google' })
   @Get('/google/callback')
   @UseGuards(AuthGuard('google'))
-  async callback(@Req() req) {
+  async callback(@Req() req): GlobalResponseType {
     return this.authService.googleLogin(req);
   }
 
@@ -89,12 +90,13 @@ export class AuthController {
   // ANCHOR - ADD ADMIN
   @ApiOperation({ summary: 'Add Admin' })
   @Post('add_admin')
+  @UsePipes(ValidationPipe)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
   async addAdmin(
-    @Body(ValidationPipe) adminDto: RegisterUserDto,
+    @Body() adminDto: RegisterUserDto,
     @User() user: UsersEntity,
-  ) {
+  ): GlobalResponseType {
     return await this.authService.addAdmin(adminDto, user);
   }
 
@@ -108,7 +110,7 @@ export class AuthController {
   @Delete('remove_user/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
-  async removeUser(@Param('id') id: number) {
+  async removeUser(@Param('id') id: number): GlobalResponseType {
     return await this.authService.removeUser(id);
   }
 
@@ -120,13 +122,14 @@ export class AuthController {
   // ANCHOR - ADD ADMIN
   @ApiOperation({ summary: 'Update Admin' })
   @Patch('update_admin/:id')
+  @UsePipes(ValidationPipe)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
   async updateAdmin(
-    @Body(ValidationPipe) admin: UpdateAdminDto,
+    @Body() admin: UpdateAdminDto,
     @Param('id') id: number,
     @User() user: UsersEntity,
-  ) {
+  ): GlobalResponseType {
     return await this.authService.updateAdmin(id, admin, user);
   }
 }

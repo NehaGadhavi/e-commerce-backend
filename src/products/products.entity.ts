@@ -10,27 +10,27 @@ import { ProductCategory } from 'src/utils/enums';
 
 @Entity('products')
 export class ProductsEntity extends BaseEntity{
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ comment: 'PK Auto Increment' })
   id: number;
 
-  @Column({ default: ''})
+  @Column({ nullable: false })
   product_name: string;
 
-  @Column({ default: ''})
+  @Column({ type: 'varchar', nullable: false })
   description: string;
 
-  @Column({nullable: true})
+  @Column({nullable: false})
   price: number;
 
-  @Column({ default: ''})
+  @Column({ default: null})
   product_img: string;
 
   @OneToMany(() => CartProductsEntity, (cartProducts) => cartProducts.products)
   cartProducts: CartProductsEntity;
 
-  @Column({nullable: true})
+  @Column({nullable: false})
   quantity: number;
 
-  @Column({ type: 'integer', nullable: true })
+  @Column({ type: 'integer', nullable: false })
   category: ProductCategory;
 }
