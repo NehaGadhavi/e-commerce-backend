@@ -6,10 +6,10 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CartProductsEntity } from './cart-products.entity';
-import { ProductCategory } from 'src/utils/enums';
+import { GenderCategory } from 'src/utils/enums';
 
 @Entity('products')
-export class ProductsEntity extends BaseEntity{
+export class ProductsEntity extends BaseEntity {
   @PrimaryGeneratedColumn({ comment: 'PK Auto Increment' })
   id: number;
 
@@ -19,18 +19,18 @@ export class ProductsEntity extends BaseEntity{
   @Column({ type: 'varchar', nullable: false })
   description: string;
 
-  @Column({nullable: false})
+  @Column({ nullable: false })
   price: number;
 
-  @Column({ default: null})
+  @Column({ default: null })
   product_img: string;
 
   @OneToMany(() => CartProductsEntity, (cartProducts) => cartProducts.products)
   cartProducts: CartProductsEntity;
 
-  @Column({nullable: false})
+  @Column({ nullable: false })
   quantity: number;
 
   @Column({ type: 'integer', nullable: false })
-  category: ProductCategory;
+  category: GenderCategory;
 }

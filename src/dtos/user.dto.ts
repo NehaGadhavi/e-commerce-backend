@@ -1,6 +1,14 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { IsNotEmpty, Matches, IsString, IsEmail } from 'class-validator';
+import {
+  IsNotEmpty,
+  Matches,
+  IsString,
+  IsEmail,
+  IsNumber,
+  IsOptional,
+} from 'class-validator';
 import { DtoErrorMessage, passwordValidation } from 'src/utils/constants';
+import { GenderCategory, UserRoles } from 'src/utils/enums';
 
 export class RegisterUserDto {
   @ApiProperty()
@@ -12,8 +20,7 @@ export class RegisterUserDto {
   @IsNotEmpty({ message: DtoErrorMessage.empty_password })
   @IsString()
   @Matches(passwordValidation, {
-    message:
-      DtoErrorMessage.password,
+    message: DtoErrorMessage.password,
   })
   password: string;
 
@@ -23,19 +30,27 @@ export class RegisterUserDto {
   email: string;
 
   @ApiProperty()
-  roles: string;
+  roles: UserRoles;
 
   @ApiProperty()
   dob: string;
 
   @ApiProperty()
-  @IsString()
-  gender: string;
+  gender: GenderCategory;
 
   @ApiProperty()
   @IsString()
   address: string;
 
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber()
+  total_purchase: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber()
+  total_payment: number;
 }
 
 export class UpdateAdminDto extends PartialType(RegisterUserDto) {}

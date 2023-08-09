@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Req,
+  Res,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -25,8 +26,9 @@ import { JwtAuthGuard } from './jwt.auth.guard';
 import { UsersEntity } from './users.entity';
 import { UserRoles } from 'src/utils/enums';
 import { API } from 'src/utils/swagger.constants';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { GlobalResponseType } from 'src/utils/types';
+import { FRONTEND_URL } from 'src/utils/constants';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -42,7 +44,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Sign up for users' })
   @Post('register')
   @UsePipes(ValidationPipe)
-  registration(@Body() registerUserData: RegisterUserDto):GlobalResponseType {
+  registration(@Body() registerUserData: RegisterUserDto): GlobalResponseType {
     return this.authService.registerUser(registerUserData);
   }
 

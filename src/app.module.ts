@@ -10,7 +10,6 @@ import { join } from 'path';
 import { multerConfig } from './multer/multer.config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 
-
 @Module({
   imports: [
     TypeOrmModule.forRoot(typeormConfig),

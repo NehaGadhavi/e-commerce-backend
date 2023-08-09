@@ -18,7 +18,11 @@ import {
 import { ProductsService } from './products.service';
 import { UsersEntity } from 'src/auth/users.entity';
 import { User } from 'src/user.decorator';
-import { CreateProductDto, UpdateProductDto, cartProductDto } from 'src/dtos/product.dto';
+import {
+  CreateProductDto,
+  UpdateProductDto,
+  cartProductDto,
+} from 'src/dtos/product.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
 import { Roles } from 'src/roles/roles.decorator';
@@ -33,7 +37,6 @@ import { GlobalResponseType } from 'src/utils/types';
 @Controller('products')
 export class ProductsController {
   constructor(private productsService: ProductsService) {}
-
 
   @ApiOperation({ summary: 'Get all products' })
   @Get('all')
@@ -67,7 +70,7 @@ export class ProductsController {
     @Body() productDto: CreateProductDto,
     @UploadedFile() image: Express.Multer.File,
     @User() user: UsersEntity,
-  ):GlobalResponseType {    
+  ): GlobalResponseType {
     return await this.productsService.addProduct(productDto, user, image);
   }
 
@@ -82,7 +85,7 @@ export class ProductsController {
     @Body() product: UpdateProductDto,
     @UploadedFile() image: Express.Multer.File,
     @User() user: UsersEntity,
-  ):GlobalResponseType {
+  ): GlobalResponseType {
     return await this.productsService.updateProduct(
       Number(req.params.id),
       product,
@@ -95,17 +98,20 @@ export class ProductsController {
   @Delete('delete_product/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
-  async removeProduct(@Param('id') id: number, @User() user: UsersEntity):GlobalResponseType {
+  async removeProduct(
+    @Param('id') id: number,
+    @User() user: UsersEntity,
+  ): GlobalResponseType {
     return await this.productsService.removeProduct(id, user);
   }
 
   /**Api for CART PRODUCTS */
-  
+
   @ApiOperation({ summary: 'Get products in cart' })
   @Get('carts')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRoles.Customer) // Restrict to Customer role
-  async getAllCarts(@User() user: UsersEntity) {    
+  async getAllCarts(@User() user: UsersEntity) {
     return await this.productsService.getAllCarts(user);
   }
 
@@ -118,25 +124,42 @@ export class ProductsController {
     @Param('id') id: number,
     @Body() cartDto: cartProductDto,
     @User() user: UsersEntity,
-  ):GlobalResponseType {
+  ): GlobalResponseType {
     return await this.productsService.addToCart(id, cartDto, user);
   }
 
   @ApiOperation({ summary: 'Remove from cart' })
-  @Delete('delete/:id')
+  @Delete('remove_from_cart/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRoles.Customer) // Restrict to Customer role
-  async removeFromCart(@Param('id') id: number, @User() user: UsersEntity): GlobalResponseType {
+  async removeFromCart(
+    @Param('id') id: number,
+    @User() user: UsersEntity,
+  ): GlobalResponseType {
     return await this.productsService.removeFromCart(id, user);
   }
 
-  @ApiOperation({summary: 'Purchase Product'})
+  @ApiOperation({ summary: 'Purchase Product' })
   @Patch('purchase/:id')
   @UsePipes(ValidationPipe)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRoles.Customer) // Restrict to Customer role
-  purchaseProduct(@Param('id') id: number,
-  @User() user: UsersEntity) :GlobalResponseType {
-    return this.productsService.purchaseProduct(id, user);
+  async purchaseProduct(
+    @Param('id') id: number,
+    @User() user: UsersEntity,
+  ): GlobalResponseType {
+    return await this.productsService.purchaseProduct(id, user);
+  }
+
+  @ApiOperation({ summary: 'Update Quantity' })
+  @Patch('update_quantity/:id')
+  @UsePipes(ValidationPipe)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoles.SuperAdmin, UserRoles.Customer)
+  async updateQuantity(
+    @Param('id') id: number,
+    @Body('quantity') quantity: number,
+  ) {
+    return await this.productsService.updateQuantity(id, quantity);
   }
 }

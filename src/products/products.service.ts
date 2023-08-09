@@ -27,6 +27,7 @@ import {
   SUCCESS_MSG,
 } from 'src/utils/constants';
 import path from 'path';
+import { unlink } from 'fs/promises';
 
 @Injectable()
 export class ProductsService {
@@ -35,6 +36,8 @@ export class ProductsService {
     private productsRepository: Repository<ProductsEntity>,
     @InjectRepository(CartProductsEntity)
     private cartProductRepository: Repository<CartProductsEntity>,
+    @InjectRepository(UsersEntity)
+    private userRepository: Repository<UsersEntity>,
   ) {}
 
   //methods for products table
@@ -42,7 +45,7 @@ export class ProductsService {
     page: number = 1,
     limit: number = 10,
     category: number | null = null, // Default to null if no category is specified
-  ){
+  ) {
     try {
       const skip = (page - 1) * limit;
       const where: any = {}; // Where condition for filtering
@@ -80,7 +83,7 @@ export class ProductsService {
       product.price = Number(productDto.price);
       product.description = productDto.description;
       product.quantity = Number(productDto.quantity);
-      product.category = productDto.category;
+      product.category = Number(productDto.category);
 
       // Save the image path or link to the database
       if (image.filename) {
@@ -128,8 +131,14 @@ export class ProductsService {
 
       builder.offset((page - 1) * perPage).limit(perPage);
 
+      const data = await builder.getMany();
+
+      if (data.length <= 0) {
+        throw new BadRequestException(ERROR_MSG.not_found);
+      }
+
       return {
-        data: await builder.getMany(),
+        data: data,
         total,
         page,
         last_page: Math.ceil(total / perPage),
@@ -166,7 +175,7 @@ export class ProductsService {
       product.price = Number(productDto.price);
       product.description = productDto.description;
       product.quantity = Number(productDto.quantity);
-      product.category = productDto.category;
+      product.category = Number(productDto.category);
       // Update the image path or link to the database
       if (image.filename) {
         product.product_img = 'uploads/' + image.filename;
@@ -199,10 +208,30 @@ export class ProductsService {
 
   async removeProduct(id: number, user: UsersEntity): GlobalResponseType {
     try {
+      const product = await this.productsRepository.findOne({ where: { id } }); // Fetch the product
+
+      if (!product) {
+        throw new NotFoundException(DATABASE_ERROR_MSG.product_delete);
+      }
+
+      const imagePath = product.product_img; // Get the image path from the product
+
       const result = await this.productsRepository.delete({ id });
+
       if (result.affected === 0) {
         throw new NotFoundException(DATABASE_ERROR_MSG.product_delete);
       } else {
+        // Delete the image from the local public folder
+        if (imagePath) {
+          console.log(imagePath);
+
+          try {
+            await unlink(imagePath);
+          } catch (error) {
+            console.error('Error deleting image:', error);
+          }
+        }
+
         return ResponseMap(
           {
             success: true,
@@ -251,6 +280,8 @@ export class ProductsService {
   ): GlobalResponseType {
     try {
       const product = await this.productsRepository.findOne({ where: { id } });
+
+      // Check for sufficient quantity
       if (product.quantity <= cartDto.quantity) {
         throw new BadRequestException(ERROR_MSG.not_enogh_products);
       }
@@ -258,7 +289,7 @@ export class ProductsService {
       const productToAdd = new CartProductsEntity();
       productToAdd.products = product;
       productToAdd.users = user;
-      productToAdd.quantity = cartDto.quantity;
+      productToAdd.quantity = Number(cartDto.quantity);
       if (cartDto.status) {
         productToAdd.status = cartDto.status;
       } else {
@@ -295,31 +326,127 @@ export class ProductsService {
 
   async removeFromCart(id: number, user: UsersEntity): GlobalResponseType {
     try {
-      const toBeRemoved = await this.cartProductRepository.findOne({
-        where: { id },
+      const toBeRemoved = await this.cartProductRepository
+        .createQueryBuilder('cart')
+        .leftJoinAndSelect('cart.users', 'users')
+        .leftJoinAndSelect('cart.products', 'products')
+        .where('cart.id = :id', { id })
+        .getOne();
+
+      if (!toBeRemoved) {
+        throw new BadRequestException(ERROR_MSG.not_in_cart);
+      }
+
+      const foundProduct = await this.productsRepository.findOne({
+        where: { id: toBeRemoved.products.id },
       });
-      const productInList = await this.productsRepository.findOne({
-        where: { id: toBeRemoved.users.id },
-      });
+
       const result = await this.cartProductRepository.delete({ id });
+
       if (result.affected === 0) {
         throw new NotFoundException(DATABASE_ERROR_MSG.cart_delete);
-      } else {
-        // Update quantity in Products table
-        const updatedQuantityProduct = new ProductsEntity();
-        updatedQuantityProduct.quantity =
-          productInList.quantity + toBeRemoved.quantity;
-        await this.productsRepository.update(
-          productInList.id,
-          updatedQuantityProduct,
-        );
+      }
+      const isUpdated = await this.updateQuantityInProduct(
+        foundProduct,
+        toBeRemoved,
+      );
 
-        return ResponseMap(
-          {
-            success: true,
-          },
-          SUCCESS_MSG.cart_delete_success,
-        );
+      if (!isUpdated) {
+        throw new BadRequestException(ERROR_MSG.product_not_updated);
+      }
+
+      return ResponseMap(
+        {
+          success: true,
+        },
+        SUCCESS_MSG.cart_delete_success,
+      );
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async updateQuantityInProduct(
+    foundProduct: ProductsEntity,
+    toBeRemoved: CartProductsEntity,
+  ) {
+    // Update quantity in Products table
+    const updatedQuantityProduct = new ProductsEntity();
+    updatedQuantityProduct.quantity =
+      foundProduct.quantity + toBeRemoved.quantity;
+    const isUpdated = await this.productsRepository.update(
+      toBeRemoved.products.id,
+      updatedQuantityProduct,
+    );
+
+    if (isUpdated) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  async purchaseProduct(id: number, user: UsersEntity): GlobalResponseType {
+    try {
+      const cartProduct = await this.cartProductRepository
+        .createQueryBuilder('cart')
+        .leftJoinAndSelect('cart.users', 'users')
+        .leftJoinAndSelect('cart.products', 'products')
+        .where('cart.id = :id', { id })
+        .getOne();
+
+      if (cartProduct.users.id !== user.id) {
+        throw new BadRequestException(ERROR_MSG.unauthorized_to_buy);
+      }
+
+      if (!cartProduct) {
+        throw new NotFoundException(ERROR_MSG.not_in_cart);
+      }
+
+      if (cartProduct.status === CartStatus.SOLD) {
+        throw new BadRequestException(ERROR_MSG.already_bought);
+      }
+
+      const result = await this.cartProductRepository.update(id, {
+        status: CartStatus.SOLD,
+      });
+
+      if (result.affected === 0) {
+        throw new NotFoundException(DATABASE_ERROR_MSG.product_purchase);
+      } else {
+        const isChanged = await this.changeUserPurchases(cartProduct, user);
+      }
+
+      return ResponseMap(
+        { success: true },
+        SUCCESS_MSG.product_purchase_success,
+      );
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async changeUserPurchases(
+    soldProduct: CartProductsEntity,
+    user: UsersEntity,
+  ) {
+    try {
+      if (soldProduct.users.id === user.id) {
+        const updateUser = new UsersEntity();
+        updateUser.total_purchase = user.total_purchase + soldProduct.quantity;
+        updateUser.total_payment =
+          user.total_payment +
+          soldProduct.quantity * soldProduct.products.price;
+
+        const isUpdated = await this.userRepository.update(user.id, updateUser);
+
+        return isUpdated;
       }
     } catch (error) {
       throw new HttpException(
@@ -329,32 +456,23 @@ export class ProductsService {
     }
   }
 
-  async purchaseProduct(id: number, user: UsersEntity): GlobalResponseType {
-    const updatedStatusProduct = new CartProductsEntity();
-    updatedStatusProduct.status = CartStatus.SOLD;
-    const product = await this.cartProductRepository.update(
-      id,
-      updatedStatusProduct,
-    );
-    if (product) {
-      return ResponseMap(
-        {
-          success: true,
-        },
-        SUCCESS_MSG.product_purchase_success,
-      );
-    } else {
-      throw new BadRequestException(DATABASE_ERROR_MSG.product_purchase);
-    }
-  }
+  async updateQuantity(id: number, quantity: number): GlobalResponseType {
+    //yet to be done: when quantity is increased or decreased it should get reflected in products table
+    const product = await this.productsRepository.findOne({ where: { id } });
 
-  async updateCart(
-    id: number,
-    cartDto: cartProductDto,
-    user: UsersEntity,
-  ): GlobalResponseType {
-    const cartProduct = await this.cartProductRepository.update(id, cartDto);
-    console.log(cartProduct);
+    // Check for sufficient quantity
+    if (product.quantity <= quantity) {
+      throw new BadRequestException(ERROR_MSG.not_enogh_products);
+    }
+
+    const updatedQuantityProduct = new CartProductsEntity();
+    updatedQuantityProduct.quantity = quantity;
+
+    const cartProduct = await this.cartProductRepository.update(
+      id,
+      updatedQuantityProduct,
+    );
+
     if (cartProduct) {
       return ResponseMap(
         {

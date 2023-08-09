@@ -7,7 +7,10 @@ export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const roles = this.reflector.get<UserRoles[]>('roles', context.getHandler());
+    const roles = this.reflector.get<UserRoles[]>(
+      'roles',
+      context.getHandler(),
+    );
 
     if (!roles) {
       return true; // If roles are not set, allow access.
@@ -15,16 +18,19 @@ export class RolesGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
-    
-    
-    if (!user || !user.roles.toString() || !this.matchRoles(roles, user.roles)) {
+
+    if (
+      !user ||
+      !user.roles.toString() ||
+      !this.matchRoles(roles, user.roles)
+    ) {
       return false; // If the user does not have any of the allowed roles, deny access.
     }
 
     return true;
   }
 
-  matchRoles(roles: UserRoles[], userRole: any){
+  matchRoles(roles: UserRoles[], userRole: any) {
     return roles.some((role) => role === userRole);
   }
 }

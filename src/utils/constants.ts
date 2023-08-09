@@ -1,8 +1,9 @@
-import { UserRoles } from "./enums";
+import { UserRoles } from './enums';
 
 export const GOOGLE_CLIENT_ID =
   '252306307767-p74ur0m74vtd0vb8035bd7raimph6jhs.apps.googleusercontent.com';
 export const GOOGLE_SECRET = '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';
+export const GOOGLE_CALLBACK_URL = 'http://localhost:8000/auth/google/callback';
 
 export interface JwtExePayload {
   created_by: string;
@@ -10,9 +11,9 @@ export interface JwtExePayload {
 }
 
 export interface JwtPayload {
-	email: string;
-	userId: number;
-	roles: UserRoles;
+  email: string;
+  userId: number;
+  roles: UserRoles;
 }
 
 export const expired = 14400;
@@ -42,7 +43,8 @@ export const DtoErrorMessage = {
   empty_category: 'Category shoul not be empty',
 };
 
-export const passwordValidation = /(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).*$/;
+export const passwordValidation =
+  /(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).*$/;
 
 export const SUCCESS_MSG = {
   user_register_success: 'User registered successfully.',
@@ -57,7 +59,7 @@ export const SUCCESS_MSG = {
   cart_delete_success: 'Product removed from cart successfully.',
   product_purchase_success: 'Product purchased successfully.',
   cart_update_success: 'Products in cart updated successfully.',
-}
+};
 
 export const ERROR_MSG = {
   username_already_taken: 'Username already taken.',
@@ -67,7 +69,12 @@ export const ERROR_MSG = {
   admin_not_found: 'Admin not found!',
   product_not_found: 'Product not found!',
   not_enogh_products: 'Oops, Not enough Products!',
-}
+  not_in_cart: 'Product not found in the cart.',
+  already_bought: 'Product is already purchased.',
+  unauthorized_to_buy: 'Sorry you cant someone else cart product!',
+  not_found: 'Oops, No results found for your search!',
+  product_not_updated: 'Product is not yet removed!',
+};
 
 export const DATABASE_ERROR_MSG = {
   user_delete: 'User not removed!',
@@ -75,6 +82,8 @@ export const DATABASE_ERROR_MSG = {
   product_delete: 'Product not removed!',
   add_to_cart: 'Product not added to cart!',
   cart_delete: 'Product not removed from cart!',
-  product_purchase: 'Product not purchased yet!',
+  product_purchase: 'Oops, Product not purchase failed!',
   cart_update: 'Cart products not updated!',
-}
+};
+
+export const FRONTEND_URL = 'http://localhost:3000/cart';

@@ -17,6 +17,7 @@ import { RegisterUserDto, UpdateAdminDto } from 'src/dtos/user.dto';
 import {
   DATABASE_ERROR_MSG,
   ERROR_MSG,
+  FRONTEND_URL,
   JwtExePayload,
   JwtPayload,
   ResponseMap,
@@ -66,7 +67,6 @@ export class AuthService {
     }
   }
 
-
   async getUserResponse(user: UsersEntity) {
     // Access token generation
     const payload: JwtPayload = {
@@ -77,10 +77,10 @@ export class AuthService {
 
     const token = await this.jwtService.signAsync(payload);
 
-		return {
-			token,
-			expires: expired
-		};
+    return {
+      token,
+      expires: expired,
+    };
   }
 
   async registerUser(registerUserDto: RegisterUserDto): GlobalResponseType {
@@ -124,7 +124,7 @@ export class AuthService {
     if (!req.user) {
       throw new BadRequestException(ERROR_MSG.user_not_found);
     }
-
+    
     const user = new UsersEntity();
     user.username = `${userData.firstName}`;
     user.email = userData.email;
@@ -151,7 +151,6 @@ export class AuthService {
   }
 
   async getUsersResponse(user: UsersEntity) {
-    console.log(user);
     // Access Token Generation
     const payload: JwtExePayload = {
       created_by: user.email,
