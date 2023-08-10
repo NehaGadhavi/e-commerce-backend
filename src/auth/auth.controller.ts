@@ -6,8 +6,10 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -28,7 +30,7 @@ import { UserRoles } from 'src/utils/enums';
 import { API } from 'src/utils/swagger.constants';
 import { Request, Response } from 'express';
 import { GlobalResponseType } from 'src/utils/types';
-import { FRONTEND_URL } from 'src/utils/constants';
+import { ShippingDetailsDto } from 'src/dtos/shipping-details.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -72,16 +74,20 @@ export class AuthController {
   @ApiOperation({ summary: 'Callback api of google' })
   @Get('/google/callback')
   @UseGuards(AuthGuard('google'))
-  async callback(@Req() req): GlobalResponseType {
-    return this.authService.googleLogin(req);
+  async callback(@Req() req, @Res() res: Response) {
+    return this.authService.googleLogin(req, res);
   }
 
   @ApiOperation({ summary: 'Get all users' })
   @Get('users')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRoles.SuperAdmin, UserRoles.ViewerAdmin) // Restrict to SuperAdmin and Admin role
-  async getAllUsers(@User() user: UsersEntity) {
-    return await this.authService.getAllUsers(user);
+  async getAllUsers(
+    @User() user: UsersEntity,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 10,
+  ) {
+    return await this.authService.getAllUsers(user, page, limit);
   }
 
   /**

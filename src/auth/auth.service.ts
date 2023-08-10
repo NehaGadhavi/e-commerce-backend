@@ -17,7 +17,6 @@ import { RegisterUserDto, UpdateAdminDto } from 'src/dtos/user.dto';
 import {
   DATABASE_ERROR_MSG,
   ERROR_MSG,
-  FRONTEND_URL,
   JwtExePayload,
   JwtPayload,
   ResponseMap,
@@ -119,12 +118,16 @@ export class AuthService {
     }
   }
 
-  async googleLogin(req) {
+  async googleLogin(req, res) {
+    // Redirect to frontend
+    const jwtToken = req.user.google_access_token;
+    res.redirect(`${process.env.FRONTEND_URL}?query=${jwtToken}`);
+
     const userData = req.user;
     if (!req.user) {
       throw new BadRequestException(ERROR_MSG.user_not_found);
     }
-    
+
     const user = new UsersEntity();
     user.username = `${userData.firstName}`;
     user.email = userData.email;
@@ -165,15 +168,21 @@ export class AuthService {
     };
   }
 
-  async getAllUsers(user: UsersEntity) {
+  async getAllUsers(user: UsersEntity, page: number = 1, limit: number = 10) {
     try {
+      const skip = (page - 1) * limit;
       let users;
 
       if (user.roles === UserRoles.SuperAdmin) {
-        users = await this.userRepository.find();
+        users = await this.userRepository.find({
+          take: limit,
+          skip,
+        });
       }
       if (user.roles === UserRoles.ViewerAdmin) {
         users = await this.userRepository.find({
+          take: limit,
+          skip,
           where: {
             roles: Not(UserRoles.SuperAdmin),
           },

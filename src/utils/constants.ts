@@ -41,6 +41,14 @@ export const DtoErrorMessage = {
   empty_price: 'Price should not be empty',
   empty_quantity: 'Quantity should not be empty',
   empty_category: 'Category shoul not be empty',
+  empty_firstName: 'First Name should not be empty',
+  empty_lastName: 'Last Name should not be empty',
+  empty_addressLine1: 'Address line1 should not be empty',
+  empty_addressLine2: 'Address line2 should not be empty',
+  empty_city: 'City name should not be empty',
+  empty_zipPostal: 'Zip/Postal should not be empty',
+  empty_country: 'Country name should not be empty',
+  empty_zipCode: 'Zip code should not be empty',
 };
 
 export const passwordValidation =
@@ -74,6 +82,7 @@ export const ERROR_MSG = {
   unauthorized_to_buy: 'Sorry you cant someone else cart product!',
   not_found: 'Oops, No results found for your search!',
   product_not_updated: 'Product is not yet removed!',
+  no_products_to_buy: 'Oops, There are no products in cart!',
 };
 
 export const DATABASE_ERROR_MSG = {
@@ -84,6 +93,6 @@ export const DATABASE_ERROR_MSG = {
   cart_delete: 'Product not removed from cart!',
   product_purchase: 'Oops, Product not purchase failed!',
   cart_update: 'Cart products not updated!',
+  product_save: 'Product not saved!',
+  shippingDetails_save: 'Shipping details not saved!',
 };
-
-export const FRONTEND_URL = 'http://localhost:3000/cart';

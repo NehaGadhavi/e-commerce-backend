@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductsEntity } from './products.entity';
-import { Repository, getRepository } from 'typeorm';
+import { EntityManager, Repository, getManager, getRepository } from 'typeorm';
 import { UsersEntity } from 'src/auth/users.entity';
 import {
   CreateProductDto,
@@ -28,6 +28,8 @@ import {
 } from 'src/utils/constants';
 import path from 'path';
 import { unlink } from 'fs/promises';
+import { ShippingDetailsDto } from 'src/dtos/shipping-details.dto';
+import { ShippingDetailsEntity } from './shipping-details.entity';
 
 @Injectable()
 export class ProductsService {
@@ -38,6 +40,9 @@ export class ProductsService {
     private cartProductRepository: Repository<CartProductsEntity>,
     @InjectRepository(UsersEntity)
     private userRepository: Repository<UsersEntity>,
+    private readonly entityManager: EntityManager,
+    @InjectRepository(ShippingDetailsEntity)
+    private shippingRepository: Repository<ShippingDetailsEntity>,
   ) {}
 
   //methods for products table
@@ -45,6 +50,7 @@ export class ProductsService {
     page: number = 1,
     limit: number = 10,
     category: number | null = null, // Default to null if no category is specified
+    sortOrder: 'asc' | 'desc' = null, // Default to random order if no sortOrder is specified
   ) {
     try {
       const skip = (page - 1) * limit;
@@ -54,12 +60,21 @@ export class ProductsService {
         where.category = category;
       }
 
-      const products = await this.productsRepository.find({
-        take: limit,
-        skip,
-        where,
-      });
-      return products;
+      const queryBuilder =
+        this.productsRepository.createQueryBuilder('product');
+
+      queryBuilder.where(where);
+      queryBuilder.take(limit);
+      queryBuilder.skip(skip);
+
+      // Add sorting based on sortOrder parameter
+      if (sortOrder === 'asc') {
+        queryBuilder.orderBy('product.price', 'ASC');
+      } else if (sortOrder === 'desc') {
+        queryBuilder.orderBy('product.price', 'DESC');
+      }
+
+      return queryBuilder.getMany();
     } catch (error) {
       throw new HttpException(
         error,
@@ -93,6 +108,10 @@ export class ProductsService {
       }
 
       const savedProduct = await this.productsRepository.save(product);
+
+      if (!savedProduct) {
+        throw new BadRequestException(DATABASE_ERROR_MSG.product_save);
+      }
 
       return ResponseMap(
         {
@@ -183,18 +202,18 @@ export class ProductsService {
         product.product_img = '';
       }
 
-      const savedProduct = await this.productsRepository.update(
+      const updatedProduct = await this.productsRepository.update(
         product.id,
         product,
       );
 
-      if (!savedProduct) {
+      if (!updatedProduct) {
         throw new BadRequestException(DATABASE_ERROR_MSG.product_update);
       }
 
       return ResponseMap(
         {
-          savedProduct,
+          updatedProduct,
         },
         SUCCESS_MSG.product_update_success,
       );
@@ -208,10 +227,10 @@ export class ProductsService {
 
   async removeProduct(id: number, user: UsersEntity): GlobalResponseType {
     try {
-      const product = await this.productsRepository.findOne({ where: { id } }); // Fetch the product
+      const product = await this.productsRepository.findOne({ where: { id } });
 
       if (!product) {
-        throw new NotFoundException(DATABASE_ERROR_MSG.product_delete);
+        throw new NotFoundException(ERROR_MSG.product_not_found);
       }
 
       const imagePath = product.product_img; // Get the image path from the product
@@ -220,25 +239,25 @@ export class ProductsService {
 
       if (result.affected === 0) {
         throw new NotFoundException(DATABASE_ERROR_MSG.product_delete);
-      } else {
-        // Delete the image from the local public folder
-        if (imagePath) {
-          console.log(imagePath);
-
-          try {
-            await unlink(imagePath);
-          } catch (error) {
-            console.error('Error deleting image:', error);
-          }
-        }
-
-        return ResponseMap(
-          {
-            success: true,
-          },
-          SUCCESS_MSG.product_delete_success,
-        );
       }
+
+      // Delete the image from the local public folder
+      if (imagePath) {
+        console.log(imagePath);
+
+        try {
+          await unlink(imagePath);
+        } catch (error) {
+          console.error('Error deleting image:', error);
+        }
+      }
+
+      return ResponseMap(
+        {
+          success: true,
+        },
+        SUCCESS_MSG.product_delete_success,
+      );
     } catch (error) {
       throw new HttpException(
         error,
@@ -255,6 +274,10 @@ export class ProductsService {
         .leftJoinAndSelect('cart.products', 'products')
         .where('cart.usersId = :userId', { userId: user.id })
         .getMany();
+
+        if(!cartProducts){
+          throw new BadRequestException(ERROR_MSG.no_products_to_buy);
+        }
 
       // Remove the 'quantity' property from each 'products' object
       const transformedCartProducts = cartProducts.map((cartProduct) => {
@@ -297,25 +320,30 @@ export class ProductsService {
       }
       const isSaved = await this.cartProductRepository.save(productToAdd);
 
-      // Check if product is added to cart,
-      // if so then update quantity in products table
-      if (isSaved) {
-        const updatedQuantityProduct = new ProductsEntity();
-        updatedQuantityProduct.quantity = product.quantity - cartDto.quantity;
-
-        await this.productsRepository.update(
-          product.id,
-          updatedQuantityProduct,
-        );
-        return ResponseMap(
-          {
-            productToAdd,
-          },
-          SUCCESS_MSG.add_to_cart_success,
-        );
-      } else {
+      // Check if product is added to cart
+      if (!isSaved) {
         throw new BadRequestException(DATABASE_ERROR_MSG.add_to_cart);
       }
+
+      const updatedQuantityProduct = new ProductsEntity();
+      updatedQuantityProduct.quantity = product.quantity - cartDto.quantity;
+
+      const isUpdated = await this.productsRepository.update(
+        product.id,
+        updatedQuantityProduct,
+      );
+
+      // Check if product updated
+      if (!isUpdated) {
+        throw new BadRequestException(DATABASE_ERROR_MSG.product_update);
+      }
+
+      return ResponseMap(
+        {
+          productToAdd,
+        },
+        SUCCESS_MSG.add_to_cart_success,
+      );
     } catch (error) {
       throw new HttpException(
         error,
@@ -346,6 +374,7 @@ export class ProductsService {
       if (result.affected === 0) {
         throw new NotFoundException(DATABASE_ERROR_MSG.cart_delete);
       }
+
       const isUpdated = await this.updateQuantityInProduct(
         foundProduct,
         toBeRemoved,
@@ -389,37 +418,38 @@ export class ProductsService {
     }
   }
 
-  async purchaseProduct(id: number, user: UsersEntity): GlobalResponseType {
+  async purchaseProduct(user: UsersEntity): GlobalResponseType {
     try {
-      const cartProduct = await this.cartProductRepository
+      const cartProducts = await this.cartProductRepository
         .createQueryBuilder('cart')
         .leftJoinAndSelect('cart.users', 'users')
         .leftJoinAndSelect('cart.products', 'products')
-        .where('cart.id = :id', { id })
-        .getOne();
-
-      if (cartProduct.users.id !== user.id) {
-        throw new BadRequestException(ERROR_MSG.unauthorized_to_buy);
+        .where('cart.users.id = :userId', { userId: user.id })
+        .andWhere('cart.status = :status', { status: CartStatus.IN_CART })
+        .getMany();
+  
+      if (cartProducts.length === 0) {
+        throw new NotFoundException(ERROR_MSG.no_products_to_buy);
       }
-
-      if (!cartProduct) {
-        throw new NotFoundException(ERROR_MSG.not_in_cart);
-      }
-
-      if (cartProduct.status === CartStatus.SOLD) {
-        throw new BadRequestException(ERROR_MSG.already_bought);
-      }
-
-      const result = await this.cartProductRepository.update(id, {
-        status: CartStatus.SOLD,
-      });
-
+  
+      const productIdsToUpdate = cartProducts.map(cartProduct => cartProduct.id);
+  
+      const result = await this.cartProductRepository.update(
+        productIdsToUpdate,
+        {
+          status: CartStatus.SOLD,
+        },
+      );
+  
       if (result.affected === 0) {
         throw new NotFoundException(DATABASE_ERROR_MSG.product_purchase);
-      } else {
-        const isChanged = await this.changeUserPurchases(cartProduct, user);
       }
-
+  
+      const isUpdated = await this.changeUserPurchases(cartProducts, user);
+      if (!isUpdated) {
+        throw new BadRequestException(DATABASE_ERROR_MSG.product_update);
+      }
+  
       return ResponseMap(
         { success: true },
         SUCCESS_MSG.product_purchase_success,
@@ -431,23 +461,30 @@ export class ProductsService {
       );
     }
   }
-
+  
   async changeUserPurchases(
-    soldProduct: CartProductsEntity,
+    soldProducts: CartProductsEntity[],
     user: UsersEntity,
   ) {
     try {
-      if (soldProduct.users.id === user.id) {
-        const updateUser = new UsersEntity();
-        updateUser.total_purchase = user.total_purchase + soldProduct.quantity;
-        updateUser.total_payment =
-          user.total_payment +
-          soldProduct.quantity * soldProduct.products.price;
-
-        const isUpdated = await this.userRepository.update(user.id, updateUser);
-
-        return isUpdated;
-      }
+      const totalItemsBought = soldProducts.reduce(
+        (total, cartProduct) => total + cartProduct.quantity,
+        0,
+      );
+  
+      const totalPayment = soldProducts.reduce(
+        (total, cartProduct) =>
+          total + cartProduct.quantity * cartProduct.products.price,
+        0,
+      );
+  
+      const updateUser = new UsersEntity();
+      updateUser.total_purchase = user.total_purchase + totalItemsBought;
+      updateUser.total_payment = user.total_payment + totalPayment;
+  
+      const isUpdated = await this.userRepository.update(user.id, updateUser);
+  
+      return isUpdated;
     } catch (error) {
       throw new HttpException(
         error,
@@ -455,33 +492,73 @@ export class ProductsService {
       );
     }
   }
+  
 
   async updateQuantity(id: number, quantity: number): GlobalResponseType {
-    //yet to be done: when quantity is increased or decreased it should get reflected in products table
-    const product = await this.productsRepository.findOne({ where: { id } });
-
+    const cartProduct = await this.cartProductRepository
+      .createQueryBuilder('cart')
+      .leftJoinAndSelect('cart.products', 'products')
+      .where('cart.id = :id', { id })
+      .getOne();
+  
+    if (!cartProduct) {
+      throw new NotFoundException(ERROR_MSG.not_in_cart);
+    }
+  
+    const product = await this.productsRepository.findOne({
+      where: { id: cartProduct.products.id },
+    });
+  
+    if (!product) {
+      throw new NotFoundException(ERROR_MSG.product_not_found);
+    }
+  
     // Check for sufficient quantity
-    if (product.quantity <= quantity) {
+    if (product.quantity < quantity) {
       throw new BadRequestException(ERROR_MSG.not_enogh_products);
     }
-
-    const updatedQuantityProduct = new CartProductsEntity();
-    updatedQuantityProduct.quantity = quantity;
-
-    const cartProduct = await this.cartProductRepository.update(
-      id,
-      updatedQuantityProduct,
+  
+    // Calculate quantity difference
+    const quantityDifference = quantity - cartProduct.quantity;
+  
+    // Update cart product quantity
+    cartProduct.quantity = quantity;
+  
+    // Update product quantity
+    product.quantity = product.quantity - quantityDifference;
+  
+    await this.entityManager.transaction(async transactionalEntityManager => {
+      await transactionalEntityManager.save(CartProductsEntity, cartProduct);
+      await transactionalEntityManager.save(ProductsEntity, product);
+    });
+  
+    return ResponseMap(
+      {
+        isUpdated: true,
+      },
+      SUCCESS_MSG.cart_update_success,
     );
-
-    if (cartProduct) {
-      return ResponseMap(
-        {
-          cartProduct,
-        },
-        SUCCESS_MSG.cart_update_success,
-      );
-    } else {
-      throw new BadRequestException(DATABASE_ERROR_MSG.cart_update);
-    }
   }
+
+  async saveShippingDetails(user: UsersEntity, shippingDto: ShippingDetailsDto){
+    const shippingDetails = await this.shippingRepository.save({
+      first_name: shippingDto.first_name,
+      last_name: shippingDto.last_name,
+      email: shippingDto.email,
+      address_line1: shippingDto.address_line1,
+      address_line2: shippingDto.address_line2,
+      city: shippingDto.city,
+      zip_postal: shippingDto.zip_postal,
+      country: shippingDto.country,
+      zip_code: shippingDto.zip_code,
+      bought_by: user.id,
+    })
+
+    if(!shippingDetails){
+      throw new BadRequestException(DATABASE_ERROR_MSG.shippingDetails_save);
+    }
+
+    return shippingDetails;
+  }
+  
 }

@@ -14,6 +14,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
             clientSecret: GOOGLE_SECRET,
             callbackURL: GOOGLE_CALLBACK_URL,
             scope: ['email', 'profile'],
+            prompt: 'select_account',
+            proxy:true
         });
     }
     async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback): Promise<any> {

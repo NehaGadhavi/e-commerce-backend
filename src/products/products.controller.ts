@@ -32,6 +32,7 @@ import { multerConfig } from 'src/multer/multer.config';
 import { UserRoles } from 'src/utils/enums';
 import { Request, Response } from 'express';
 import { GlobalResponseType } from 'src/utils/types';
+import { ShippingDetailsDto } from 'src/dtos/shipping-details.dto';
 
 @ApiTags('Products')
 @Controller('products')
@@ -44,8 +45,9 @@ export class ProductsController {
     @Query('page', ParseIntPipe) page: number = 1,
     @Query('limit', ParseIntPipe) limit: number = 10,
     @Query('category') categoty: number = null,
+    @Query('sortOrder') sortOrder: 'asc' | 'desc',
   ) {
-    return await this.productsService.getAllProducts(page, limit, categoty);
+    return await this.productsService.getAllProducts(page, limit, categoty, sortOrder);
   }
 
   @ApiOperation({ summary: 'Search products' })
@@ -140,18 +142,17 @@ export class ProductsController {
   }
 
   @ApiOperation({ summary: 'Purchase Product' })
-  @Patch('purchase/:id')
+  @Patch('purchase')
   @UsePipes(ValidationPipe)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRoles.Customer) // Restrict to Customer role
   async purchaseProduct(
-    @Param('id') id: number,
     @User() user: UsersEntity,
   ): GlobalResponseType {
-    return await this.productsService.purchaseProduct(id, user);
+    return await this.productsService.purchaseProduct(user);
   }
 
-  @ApiOperation({ summary: 'Update Quantity' })
+  @ApiOperation({ summary: 'Update Quantity from cart' })
   @Patch('update_quantity/:id')
   @UsePipes(ValidationPipe)
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -161,5 +162,15 @@ export class ProductsController {
     @Body('quantity') quantity: number,
   ) {
     return await this.productsService.updateQuantity(id, quantity);
+  }
+
+  @ApiOperation({ summary: 'Shipping Details' })
+  @Post('shipping_details')
+  @UsePipes(ValidationPipe)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoles.Customer) // Restrict to Customer role
+  async saveShippingDetails(@User() user: UsersEntity,
+  @Body() shippingDto: ShippingDetailsDto){
+    return await this.productsService.saveShippingDetails(user, shippingDto);
   }
 }
