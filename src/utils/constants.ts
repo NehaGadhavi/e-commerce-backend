@@ -67,6 +67,7 @@ export const SUCCESS_MSG = {
   cart_delete_success: 'Product removed from cart successfully.',
   product_purchase_success: 'Product purchased successfully.',
   cart_update_success: 'Products in cart updated successfully.',
+  details_saved_success: 'Details saved successfully.',
 };
 
 export const ERROR_MSG = {
@@ -76,13 +77,14 @@ export const ERROR_MSG = {
   unauthorized_delete: 'Super Admin cannot be deleted!',
   admin_not_found: 'Admin not found!',
   product_not_found: 'Product not found!',
-  not_enogh_products: 'Oops, Not enough Products!',
+  not_enough_products: 'Oops, Not enough Products!',
   not_in_cart: 'Product not found in the cart.',
   already_bought: 'Product is already purchased.',
   unauthorized_to_buy: 'Sorry you cant someone else cart product!',
   not_found: 'Oops, No results found for your search!',
   product_not_updated: 'Product is not yet removed!',
   no_products_to_buy: 'Oops, There are no products in cart!',
+  cant_be_added: 'Product with 0 quantity cannot be added to cart!',
 };
 
 export const DATABASE_ERROR_MSG = {

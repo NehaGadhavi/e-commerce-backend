@@ -141,16 +141,16 @@ export class ProductsController {
     return await this.productsService.removeFromCart(id, user);
   }
 
-  @ApiOperation({ summary: 'Purchase Product' })
-  @Patch('purchase')
-  @UsePipes(ValidationPipe)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoles.Customer) // Restrict to Customer role
-  async purchaseProduct(
-    @User() user: UsersEntity,
-  ): GlobalResponseType {
-    return await this.productsService.purchaseProduct(user);
-  }
+  // @ApiOperation({ summary: 'Purchase Product' })
+  // @Patch('purchase')
+  // @UsePipes(ValidationPipe)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(UserRoles.Customer) // Restrict to Customer role
+  // async purchaseProduct(
+  //   @User() user: UsersEntity,
+  // ): GlobalResponseType {
+  //   return await this.productsService.purchaseProduct(user);
+  // }
 
   @ApiOperation({ summary: 'Update Quantity from cart' })
   @Patch('update_quantity/:id')
