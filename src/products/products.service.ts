@@ -149,7 +149,7 @@ export class ProductsService {
       const data = await builder.getMany();
 
       if (data.length <= 0) {
-        throw new BadRequestException(ERROR_MSG.not_found);
+        throw new NotFoundException(ERROR_MSG.not_found);
       }
 
       return {
@@ -234,7 +234,7 @@ export class ProductsService {
       const result = await this.productsRepository.delete({ id });
 
       if (result.affected === 0) {
-        throw new NotFoundException(DATABASE_ERROR_MSG.product_delete);
+        throw new BadRequestException(DATABASE_ERROR_MSG.product_delete);
       }
 
       // Delete the image from the local public folder
@@ -281,7 +281,7 @@ export class ProductsService {
         .getMany();
 
       if (!cartProducts) {
-        throw new BadRequestException(ERROR_MSG.no_products_to_buy);
+        throw new NotFoundException(ERROR_MSG.no_products_to_buy);
       }
 
       // // Remove the 'quantity' property from each 'products' object
@@ -371,7 +371,7 @@ export class ProductsService {
         .getOne();
 
       if (!toBeRemoved) {
-        throw new BadRequestException(ERROR_MSG.not_in_cart);
+        throw new NotFoundException(ERROR_MSG.not_in_cart);
       }
 
       const foundProduct = await this.productsRepository.findOne({
@@ -381,7 +381,7 @@ export class ProductsService {
       const result = await this.cartProductRepository.delete({ id });
 
       if (result.affected === 0) {
-        throw new NotFoundException(DATABASE_ERROR_MSG.cart_delete);
+        throw new BadRequestException(DATABASE_ERROR_MSG.cart_delete);
       }
 
       const isUpdated = await this.updateQuantityInProduct(
