@@ -84,6 +84,7 @@ export const ERROR_MSG = {
   not_found: 'Oops, No results found for your search!',
   no_products_to_buy: 'Oops, There are no products in cart!',
   cant_be_added: 'Product with 0 quantity cannot be added to cart!',
+  unauthorized_error: 'Sorry, you are not authorized!',
 };
 
 export const DATABASE_ERROR_MSG = {

@@ -191,13 +191,14 @@ export class ProductsService {
       //     product[key] = ProductDto[key];
       //   }
       // });
+      console.log(productDto);
 
       product.id = id;
-      product.product_name = productDto.product_name;
-      product.price = Number(productDto.price);
-      product.description = productDto.description;
-      product.quantity = Number(productDto.quantity);
-      product.category = Number(productDto.category);
+      product.product_name = productDto?.product_name;
+      product.price = Number(productDto?.price);
+      product.description = productDto?.description;
+      product.quantity = Number(productDto?.quantity);
+      product.category = Number(productDto?.category);
       // Update the image path or link to the database
       if (image.filename) {
         product.product_img = 'uploads/' + image.filename;
@@ -205,15 +206,17 @@ export class ProductsService {
         product.product_img = '';
       }
 
-      const updatedProduct = await this.productsRepository.update(
-        product.id,
+      const isUpdated = await this.productsRepository.update(
+        id,
         product,
       );
-
-      if (!updatedProduct) {
+      
+      if (!isUpdated) {
         throw new BadRequestException(DATABASE_ERROR_MSG.product_update);
       }
-
+      
+      const updatedProduct = await this.productsRepository.findOne({where: {id}});
+      
       return ResponseMap(
         {
           updatedProduct,
@@ -240,13 +243,11 @@ export class ProductsService {
         where: {
           products: { id: product.id },
         },
-      });
+      });      
 
-      if(isInCart > 0){
-        throw new BadRequestException(DATABASE_ERROR_MSG)
+      if (isInCart > 0) {
+        throw new BadRequestException(DATABASE_ERROR_MSG.product_in_cart);
       }
-
-      const imagePath = product.product_img; // Get the image path from the product
 
       const result = await this.productsRepository.delete({ id });
 
@@ -254,21 +255,24 @@ export class ProductsService {
         throw new BadRequestException(DATABASE_ERROR_MSG.product_delete);
       }
 
-      // Delete the image from the local public folder
-      if (imagePath) {
-        const absoluteImagePath = path.resolve(
-          __dirname,
-          '..',
-          '..',
-          'public',
-          imagePath,
-        );
+      if (result.affected !== 0 && isInCart === 0) {
+        const imagePath = product.product_img; // Get the image path from the product
+        // Delete the image from the local public folder
+        if (imagePath) {
+          const absoluteImagePath = path.resolve(
+            __dirname,
+            '..',
+            '..',
+            'public',
+            imagePath,
+          );
 
-        if (absoluteImagePath) {
-          try {
-            await unlink(absoluteImagePath);
-          } catch (error) {
-            console.error('Error deleting image:', error);
+          if (absoluteImagePath) {
+            try {
+              await unlink(absoluteImagePath);
+            } catch (error) {
+              console.error('Error deleting image:', error);
+            }
           }
         }
       }
@@ -457,6 +461,14 @@ export class ProductsService {
         throw new NotFoundException(ERROR_MSG.no_products_to_buy);
       }
 
+      const hasSoldProducts = cartProducts.some(
+        (product) => product.status === CartStatus.SOLD
+      );
+  
+      if (hasSoldProducts) {
+        throw new BadRequestException('The product is already sold');
+      }
+      
       const productIdsToUpdate = cartProducts.map(
         (cartProduct) => cartProduct.id,
       );

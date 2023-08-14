@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsersEntity } from 'src/auth/users.entity';
+import { ERROR_MSG } from 'src/utils/constants';
 import { Repository } from 'typeorm';
 
 export class jwtCustomStrategy extends PassportStrategy(Strategy) {
@@ -24,7 +25,7 @@ export class jwtCustomStrategy extends PassportStrategy(Strategy) {
     });
 
     if (!user) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(ERROR_MSG.unauthorized_error);
     }
 
     return user;
