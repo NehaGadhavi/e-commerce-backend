@@ -61,17 +61,17 @@ export const SUCCESS_MSG = {
   user_delete_succes: 'User removed successfully.',
   admin_update_success: 'Admin details updated successfully.',
   product_add_success: 'Product added successfully.',
-  product_update_success: 'Product added successfully.',
+  product_update_success: 'Product updated successfully.',
   product_delete_success: 'Product removed successfully.',
   add_to_cart_success: 'Product added to cart successfully.',
   cart_delete_success: 'Product removed from cart successfully.',
   product_purchase_success: 'Product purchased successfully.',
-  cart_update_success: 'Products in cart updated successfully.',
+  cart_update_success: 'Cart product updated successfully.',
   details_saved_success: 'Details saved successfully.',
 };
 
 export const ERROR_MSG = {
-  username_already_taken: 'Username already taken.',
+  already_registered: 'Already registered user!',
   user_not_found: 'No user found',
   invalid_credential: 'Invalid credentials.',
   unauthorized_delete: 'Super Admin cannot be deleted!',
@@ -80,9 +80,8 @@ export const ERROR_MSG = {
   not_enough_products: 'Oops, Not enough Products!',
   not_in_cart: 'Product not found in the cart.',
   already_bought: 'Product is already purchased.',
-  unauthorized_to_buy: 'Sorry you cant someone else cart product!',
+  unauthorized_to_buy: 'Sorry you cannot buy someone else cart product!',
   not_found: 'Oops, No results found for your search!',
-  product_not_updated: 'Product is not yet removed!',
   no_products_to_buy: 'Oops, There are no products in cart!',
   cant_be_added: 'Product with 0 quantity cannot be added to cart!',
 };
@@ -97,4 +96,5 @@ export const DATABASE_ERROR_MSG = {
   cart_update: 'Cart products not updated!',
   product_save: 'Product not saved!',
   shippingDetails_save: 'Shipping details not saved!',
+  product_in_cart: 'This product is already added by someone in cart!',
 };

@@ -39,7 +39,7 @@ export class AuthService {
     try {
       const { email, password } = userLoginDTO;
 
-      // user check
+      // User check
       const user = await this.userRepository.findOne({
         where: { email },
       });
@@ -48,7 +48,7 @@ export class AuthService {
         throw new UnauthorizedException(ERROR_MSG.user_not_found);
       }
 
-      // password check
+      // Password check
       const isValid = await user.validatePassword(password);
 
       if (!isValid) {
@@ -86,12 +86,12 @@ export class AuthService {
     try {
       const hashed = await bcrypt.hash(registerUserDto.password, 12);
 
+      // Check if already registered
       const foundUser = await this.userRepository.findOne({
         where: { email: registerUserDto.email },
       });
-
       if (foundUser) {
-        throw new BadRequestException(ERROR_MSG.username_already_taken);
+        throw new BadRequestException(ERROR_MSG.already_registered);
       }
 
       const user = await this.userRepository.save({
@@ -134,7 +134,7 @@ export class AuthService {
     user.password = `Google ${userData.google_access_token}`;
     user.roles = 2;
 
-    // check if user already exist in databse
+    // Check if user already exist in database
     const alreadyUser = await this.userRepository.findOne({
       where: { email: userData.email },
     });
@@ -173,21 +173,13 @@ export class AuthService {
       const skip = (page - 1) * limit;
       let users;
 
-      if (user.roles === UserRoles.SuperAdmin) {
-        users = await this.userRepository.find({
-          take: limit,
-          skip,
-        });
-      }
-      if (user.roles === UserRoles.ViewerAdmin) {
-        users = await this.userRepository.find({
-          take: limit,
-          skip,
-          where: {
-            roles: Not(UserRoles.SuperAdmin),
-          },
-        });
-      }
+      users = await this.userRepository.find({
+        take: limit,
+        skip,
+        where: {
+          roles: Not(UserRoles.SuperAdmin),
+        },
+      });
 
       const transformedUsers = users.map((user) => omit(user, 'password'));
 
@@ -207,12 +199,12 @@ export class AuthService {
     try {
       const hashed = await bcrypt.hash(adminDto.password, 12);
 
+      // Check if already registered
       const foundUser = await this.userRepository.findOne({
         where: { email: adminDto.email },
       });
-
       if (foundUser) {
-        throw new BadRequestException(ERROR_MSG.username_already_taken);
+        throw new BadRequestException(ERROR_MSG.already_registered);
       }
 
       const admin = await this.userRepository.save({
@@ -242,10 +234,7 @@ export class AuthService {
 
   async removeUser(id: number): GlobalResponseType {
     try {
-      const user = await this.userRepository.findOne({ where: { id } });
-      if (user.roles === UserRoles.SuperAdmin) {
-        throw new BadRequestException(ERROR_MSG.unauthorized_delete);
-      }
+      // const user = await this.userRepository.findOne({ where: { id } });
 
       const result = await this.userRepository.delete({ id });
       if (result.affected === 0) {

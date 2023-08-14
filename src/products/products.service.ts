@@ -80,7 +80,14 @@ export class ProductsService {
   }
 
   async getProduct(id: number) {
-    return await this.productsRepository.findOne({ where: { id } });
+    try {
+      return await this.productsRepository.findOne({ where: { id } });
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async addProduct(
@@ -229,6 +236,16 @@ export class ProductsService {
         throw new NotFoundException(ERROR_MSG.product_not_found);
       }
 
+      const isInCart = await this.cartProductRepository.count({
+        where: {
+          products: { id: product.id },
+        },
+      });
+
+      if(isInCart > 0){
+        throw new BadRequestException(DATABASE_ERROR_MSG)
+      }
+
       const imagePath = product.product_img; // Get the image path from the product
 
       const result = await this.productsRepository.delete({ id });
@@ -239,7 +256,6 @@ export class ProductsService {
 
       // Delete the image from the local public folder
       if (imagePath) {
-
         const absoluteImagePath = path.resolve(
           __dirname,
           '..',
@@ -390,7 +406,7 @@ export class ProductsService {
       );
 
       if (!isUpdated) {
-        throw new BadRequestException(ERROR_MSG.product_not_updated);
+        throw new BadRequestException(DATABASE_ERROR_MSG.product_delete);
       }
 
       return ResponseMap(
@@ -456,6 +472,7 @@ export class ProductsService {
         throw new NotFoundException(DATABASE_ERROR_MSG.product_purchase);
       }
 
+      // Update total purchase and total payment of user
       const isUpdated = await this.changeUserPurchases(cartProducts, user);
       if (!isUpdated) {
         throw new BadRequestException(DATABASE_ERROR_MSG.product_update);
@@ -573,9 +590,8 @@ export class ProductsService {
         throw new BadRequestException(DATABASE_ERROR_MSG.shippingDetails_save);
       }
 
-      if (shippingDetails) {
-        this.purchaseProduct(user);
-      }
+      // Purchase product
+      this.purchaseProduct(user);
 
       return ResponseMap(
         { shippingDetails },

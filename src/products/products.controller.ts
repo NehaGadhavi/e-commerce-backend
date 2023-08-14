@@ -42,9 +42,9 @@ export class ProductsController {
   @ApiOperation({ summary: 'Get all products' })
   @Get('all')
   async getAllProducts(
-    @Query('page', ParseIntPipe) page: number = 1,
-    @Query('limit', ParseIntPipe) limit: number = 10,
-    @Query('category') categoty: number = null,
+    @Query('page', ParseIntPipe) page: number,
+    @Query('limit', ParseIntPipe) limit: number,
+    @Query('category') categoty: number | null,
     @Query('sortOrder') sortOrder: 'asc' | 'desc',
   ) {
     return await this.productsService.getAllProducts(page, limit, categoty, sortOrder);
