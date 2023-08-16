@@ -1,10 +1,10 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { CartStatus, GenderCategory } from 'src/utils/enums';
+import { CartStatus, GenderCategory } from '../utils/enums';
 import { Type } from 'class-transformer';
-import { DtoErrorMessage } from 'src/utils/constants';
-import { UsersEntity } from 'src/auth/users.entity';
-import { ProductsEntity } from 'src/products/products.entity';
+import { DtoErrorMessage } from '../utils/constants';
+import { UsersEntity } from '../auth/users.entity';
+import { ProductsEntity } from '../products/products.entity';
 
 export class CreateProductDto {
   @ApiProperty()

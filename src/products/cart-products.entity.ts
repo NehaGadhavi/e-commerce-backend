@@ -1,4 +1,4 @@
-import { UsersEntity } from 'src/auth/users.entity';
+import { UsersEntity } from '../auth/users.entity';
 import {
   BaseEntity,
   Column,
@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ProductsEntity } from './products.entity';
-import { CartStatus } from 'src/utils/enums';
+import { CartStatus } from '../utils/enums';
 
 @Entity('cart_products')
 export class CartProductsEntity extends BaseEntity {

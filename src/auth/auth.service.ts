@@ -8,12 +8,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserLoginDto } from 'src/dtos/user-login.dto';
-import { UsersEntity } from 'src/auth/users.entity';
+import { UserLoginDto } from '../dtos/user-login.dto';
+import { UsersEntity } from './users.entity';
 import { Not, Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { RegisterUserDto, UpdateAdminDto } from 'src/dtos/user.dto';
+import { RegisterUserDto, UpdateAdminDto } from '../dtos/user.dto';
 import {
   DATABASE_ERROR_MSG,
   ERROR_MSG,
@@ -22,10 +22,10 @@ import {
   ResponseMap,
   SUCCESS_MSG,
   expired,
-} from 'src/utils/constants';
-import { UserRoles } from 'src/utils/enums';
+} from '../utils/constants';
+import { UserRoles } from '../utils/enums';
 import { omit } from 'lodash';
-import { GlobalResponseType } from 'src/utils/types';
+import { GlobalResponseType } from '../utils/types';
 
 @Injectable()
 export class AuthService {
@@ -171,19 +171,23 @@ export class AuthService {
   async getAllUsers(user: UsersEntity, page: number = 1, limit: number = 10) {
     try {
       const skip = (page - 1) * limit;
-      let users;
-
-      users = await this.userRepository.find({
-        take: limit,
-        skip,
-        where: {
-          roles: Not(UserRoles.SuperAdmin),
-        },
-      });
-
+  
+      const usersQuery = this.userRepository
+        .createQueryBuilder('user')
+        .where('user.roles != :superAdminRole', { superAdminRole: UserRoles.SuperAdmin })
+        .take(limit)
+        .skip(skip);
+  
+      const users = await usersQuery.getMany();
+  
+      const totalCount = await usersQuery.getCount();
+  
       const transformedUsers = users.map((user) => omit(user, 'password'));
-
-      return { data: transformedUsers };
+  
+      return {
+        data: transformedUsers,
+        totalCount,
+      };
     } catch (error) {
       throw new HttpException(
         error,
@@ -191,7 +195,7 @@ export class AuthService {
       );
     }
   }
-
+  
   async addAdmin(
     adminDto: RegisterUserDto,
     user: UsersEntity,

@@ -17,20 +17,19 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UserLoginDto } from 'src/dtos/user-login.dto';
-import { RegisterUserDto, UpdateAdminDto } from 'src/dtos/user.dto';
+import { UserLoginDto } from '../dtos/user-login.dto';
+import { RegisterUserDto, UpdateAdminDto } from '../dtos/user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Roles } from 'src/roles/roles.decorator';
-import { RolesGuard } from 'src/roles/roles.guard';
-import { User } from 'src/user.decorator';
+import { Roles } from '../roles/roles.decorator';
+import { RolesGuard } from '../roles/roles.guard';
+import { User } from '../user.decorator';
 import { JwtAuthGuard } from './jwt.auth.guard';
 import { UsersEntity } from './users.entity';
-import { UserRoles } from 'src/utils/enums';
-import { API } from 'src/utils/swagger.constants';
+import { UserRoles } from '../utils/enums';
+import { API } from '../utils/swagger.constants';
 import { Request, Response } from 'express';
-import { GlobalResponseType } from 'src/utils/types';
-import { ShippingDetailsDto } from 'src/dtos/shipping-details.dto';
+import { GlobalResponseType } from '../utils/types';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -75,6 +74,8 @@ export class AuthController {
   @Get('/google/callback')
   @UseGuards(AuthGuard('google'))
   async callback(@Req() req, @Res() res: Response) {
+    console.log("hello");
+    
     return this.authService.googleLogin(req, res);
   }
 
@@ -86,7 +87,7 @@ export class AuthController {
     @User() user: UsersEntity,
     @Query('page', ParseIntPipe) page: number = 1,
     @Query('limit', ParseIntPipe) limit: number = 10,
-  ) {
+  ) {    
     return await this.authService.getAllUsers(user, page, limit);
   }
 

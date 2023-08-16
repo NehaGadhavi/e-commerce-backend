@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsOptional } from "class-validator";
-import { DtoErrorMessage } from "src/utils/constants";
+import { DtoErrorMessage } from "../utils/constants";
 
 export class ShippingDetailsDto{
     @ApiProperty()

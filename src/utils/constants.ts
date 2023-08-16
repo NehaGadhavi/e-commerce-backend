@@ -1,4 +1,4 @@
-import { UserRoles } from './enums';
+import { GenderCategory, UserRoles } from './enums';
 
 export const GOOGLE_CLIENT_ID =
   '252306307767-p74ur0m74vtd0vb8035bd7raimph6jhs.apps.googleusercontent.com';
@@ -93,9 +93,27 @@ export const DATABASE_ERROR_MSG = {
   product_delete: 'Product not removed!',
   add_to_cart: 'Product not added to cart!',
   cart_delete: 'Product not removed from cart!',
-  product_purchase: 'Oops, Product not purchase failed!',
+  product_purchase: 'Oops, Product not purchase!',
   cart_update: 'Cart products not updated!',
   product_save: 'Product not saved!',
   shippingDetails_save: 'Shipping details not saved!',
   product_in_cart: 'This product is already added by someone in cart!',
 };
+
+export const loginData = {
+  email: 'yash@gmail.com',
+  password: 'Yash@123',
+  roles: UserRoles.Customer,
+}
+
+export const registerData = {
+  username: 'testcase',
+  password: 'Testcase@123',
+  email: 'testcase@gmail.com',
+  roles: UserRoles.Customer,
+  dob: '2023-08-31T07:24:45.391Z',
+  gender: GenderCategory.Men,
+  address: 'testing address',
+  total_purchase: 0,
+  total_payment: 0,
+}

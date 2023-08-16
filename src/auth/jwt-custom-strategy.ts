@@ -2,8 +2,8 @@ import { UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { UsersEntity } from 'src/auth/users.entity';
-import { ERROR_MSG } from 'src/utils/constants';
+import { UsersEntity } from '../auth/users.entity';
+import { ERROR_MSG } from '../utils/constants';
 import { Repository } from 'typeorm';
 
 export class jwtCustomStrategy extends PassportStrategy(Strategy) {

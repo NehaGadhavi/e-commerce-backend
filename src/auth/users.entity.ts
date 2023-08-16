@@ -1,5 +1,5 @@
-import { CartProductsEntity } from 'src/products/cart-products.entity';
-import { GenderCategory, UserRoles } from 'src/utils/enums';
+import { CartProductsEntity } from '../products/cart-products.entity';
+import { GenderCategory, UserRoles } from '../utils/enums';
 import {
   BaseEntity,
   Column,

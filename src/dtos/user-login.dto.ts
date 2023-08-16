@@ -1,12 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { DtoErrorMessage } from 'src/utils/constants';
-import { UserRoles } from 'src/utils/enums';
+import { DtoErrorMessage } from '../utils/constants';
+import { UserRoles } from '../utils/enums';
 
 export class UserLoginDto {
-  @ApiProperty()
-  @IsOptional()
-  id: number;
 
   @ApiProperty()
   @IsNotEmpty({ message: DtoErrorMessage.empty_email })

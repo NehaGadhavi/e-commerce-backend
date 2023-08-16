@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CartProductsEntity } from './cart-products.entity';
-import { GenderCategory } from 'src/utils/enums';
+import { GenderCategory } from '../utils/enums';
 
 @Entity('products')
 export class ProductsEntity extends BaseEntity {

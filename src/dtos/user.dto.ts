@@ -7,8 +7,8 @@ import {
   IsNumber,
   IsOptional,
 } from 'class-validator';
-import { DtoErrorMessage, passwordValidation } from 'src/utils/constants';
-import { GenderCategory, UserRoles } from 'src/utils/enums';
+import { DtoErrorMessage, passwordValidation } from '../utils/constants';
+import { GenderCategory, UserRoles } from '../utils/enums';
 
 export class RegisterUserDto {
   @ApiProperty()

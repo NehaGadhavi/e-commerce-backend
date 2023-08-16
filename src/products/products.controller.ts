@@ -16,23 +16,23 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { UsersEntity } from 'src/auth/users.entity';
-import { User } from 'src/user.decorator';
+import { UsersEntity } from '../auth/users.entity';
+import { User } from '../user.decorator';
 import {
   CreateProductDto,
   UpdateProductDto,
   cartProductDto,
-} from 'src/dtos/product.dto';
+} from '../dtos/product.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
-import { Roles } from 'src/roles/roles.decorator';
-import { RolesGuard } from 'src/roles/roles.guard';
+import { JwtAuthGuard } from '../auth/jwt.auth.guard';
+import { Roles } from '../roles/roles.decorator';
+import { RolesGuard } from '../roles/roles.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { multerConfig } from 'src/multer/multer.config';
-import { UserRoles } from 'src/utils/enums';
+import { multerConfig } from '../multer/multer.config';
+import { UserRoles } from '../utils/enums';
 import { Request, Response } from 'express';
-import { GlobalResponseType } from 'src/utils/types';
-import { ShippingDetailsDto } from 'src/dtos/shipping-details.dto';
+import { GlobalResponseType } from '../utils/types';
+import { ShippingDetailsDto } from '../dtos/shipping-details.dto';
 
 @ApiTags('Products')
 @Controller('products')
@@ -170,7 +170,8 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRoles.Customer) // Restrict to Customer role
   async saveShippingDetails(@User() user: UsersEntity,
+  @Param('id') productId: number = undefined,
   @Body() shippingDto: ShippingDetailsDto){
-    return await this.productsService.saveShippingDetails(user, shippingDto);
+    return await this.productsService.saveShippingDetails(user, shippingDto, productId);
   }
 }
