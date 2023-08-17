@@ -45,4 +45,8 @@ export class ShippingDetailsDto{
     @ApiProperty()
     @IsOptional()
     bought_by: number;
+
+    @ApiProperty()
+    @IsOptional()
+    $isCalledFromCart?: boolean;
 }

@@ -151,6 +151,8 @@ export class ProductsController {
     @Body() quantity: number,
     @User() user: UsersEntity,
   ): GlobalResponseType {
+    console.log("but now controller",quantity);
+    
     return await this.productsService.buyNow(id, quantity, user);
   }
 
@@ -173,8 +175,10 @@ export class ProductsController {
   @Roles(UserRoles.Customer) // Restrict to Customer role
   async saveShippingDetails(
     @User() user: UsersEntity,
-    @Body() shippingDto: ShippingDetailsDto, isCalledFromCart: boolean
+    @Body() shippingDto: ShippingDetailsDto
   ) {
-    return await this.productsService.saveShippingDetails(user, shippingDto, isCalledFromCart);
+    console.log("isCalledFromCart", shippingDto.$isCalledFromCart);
+    
+    return await this.productsService.saveShippingDetails(user, shippingDto);
   }
 }

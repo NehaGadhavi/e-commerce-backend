@@ -588,7 +588,6 @@ export class ProductsService {
   async saveShippingDetails(
     user: UsersEntity,
     shippingDto: ShippingDetailsDto,
-    isCalledFromCart: boolean = true,
   ): GlobalResponseType {
     try {
       const shippingDetails = await this.shippingRepository.save({
@@ -609,7 +608,7 @@ export class ProductsService {
       }
 
       // Purchase product
-      if (isCalledFromCart) {
+      if (shippingDto.$isCalledFromCart) {
         const isPurchased = await this.purchaseProduct(user);
 
         console.log('isPurchased', isPurchased);
@@ -637,6 +636,8 @@ export class ProductsService {
     user: UsersEntity,
   ): GlobalResponseType {
     try {
+      console.log("buy now");
+      
       const product = await this.productsRepository.findOne({ where: { id } });
 
       if (!product) {
