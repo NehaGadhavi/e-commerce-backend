@@ -141,16 +141,18 @@ export class ProductsController {
     return await this.productsService.removeFromCart(id, user);
   }
 
-  // @ApiOperation({ summary: 'Purchase Product' })
-  // @Patch('purchase')
-  // @UsePipes(ValidationPipe)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRoles.Customer) // Restrict to Customer role
-  // async purchaseProduct(
-  //   @User() user: UsersEntity,
-  // ): GlobalResponseType {
-  //   return await this.productsService.purchaseProduct(user);
-  // }
+  @ApiOperation({ summary: 'Buy Now' })
+  @Patch('buy_now/:id')
+  @UsePipes(ValidationPipe)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoles.Customer) // Restrict to Customer role
+  async buyNow(
+    @Param('id') id: number,
+    @Body() quantity: number,
+    @User() user: UsersEntity,
+  ): GlobalResponseType {
+    return await this.productsService.buyNow(id, quantity, user);
+  }
 
   @ApiOperation({ summary: 'Update Quantity from cart' })
   @Patch('update_quantity/:id')
@@ -169,9 +171,10 @@ export class ProductsController {
   @UsePipes(ValidationPipe)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRoles.Customer) // Restrict to Customer role
-  async saveShippingDetails(@User() user: UsersEntity,
-  @Param('id') productId: number = undefined,
-  @Body() shippingDto: ShippingDetailsDto){
-    return await this.productsService.saveShippingDetails(user, shippingDto, productId);
+  async saveShippingDetails(
+    @User() user: UsersEntity,
+    @Body() shippingDto: ShippingDetailsDto, isCalledFromCart: boolean
+  ) {
+    return await this.productsService.saveShippingDetails(user, shippingDto, isCalledFromCart);
   }
 }

@@ -453,7 +453,7 @@ export class ProductsService {
   async purchaseProduct(user: UsersEntity): GlobalResponseType {
     try {
       console.log("purchase");
-      
+
       const cartProducts = await this.cartProductRepository
         .createQueryBuilder('cart')
         .leftJoinAndSelect('cart.users', 'users')
@@ -471,7 +471,7 @@ export class ProductsService {
       );
 
       if (hasSoldProducts) {
-        throw new BadRequestException('The product is already sold');
+        throw new BadRequestException(ERROR_MSG.already_bought);
       }
 
       const productIdsToUpdate = cartProducts.map(
@@ -588,7 +588,7 @@ export class ProductsService {
   async saveShippingDetails(
     user: UsersEntity,
     shippingDto: ShippingDetailsDto,
-    productId?: number,
+    isCalledFromCart: boolean = true,
   ): GlobalResponseType {
     try {
       const shippingDetails = await this.shippingRepository.save({
@@ -609,20 +609,14 @@ export class ProductsService {
       }
 
       // Purchase product
-      let isPurchased;
-      console.log(productId);
-      
-      if (productId) {
-        isPurchased = await this.buyNow(productId, user);
-      } else {
-        isPurchased = await this.purchaseProduct(user);
-      }
+      if (isCalledFromCart) {
+        const isPurchased = await this.purchaseProduct(user);
 
-      console.log("isPurchased", isPurchased);
-      
+        console.log('isPurchased', isPurchased);
 
-      if(!isPurchased){
-        throw new BadRequestException(DATABASE_ERROR_MSG.product_purchase);
+        if (!isPurchased) {
+          throw new BadRequestException(DATABASE_ERROR_MSG.product_purchase);
+        }
       }
 
       return ResponseMap(
@@ -637,31 +631,67 @@ export class ProductsService {
     }
   }
 
-  async buyNow(productId: number, user: UsersEntity) {
+  async buyNow(
+    id: number,
+    quantity: number,
+    user: UsersEntity,
+  ): GlobalResponseType {
     try {
-      console.log("buy now");
-      
-      const cartProduct = await this.cartProductRepository.findOne({where: { id: productId}});
-      let cartProducts: CartProductsEntity[];
-      cartProducts.push(cartProduct);
+      const product = await this.productsRepository.findOne({ where: { id } });
 
-
-      const result = await this.cartProductRepository.update(productId, {
-        status: CartStatus.SOLD,
-      });
-
-      if (result.affected === 0) {
-        throw new NotFoundException(DATABASE_ERROR_MSG.product_purchase);
+      if (!product) {
+        throw new NotFoundException(ERROR_MSG.product_not_found);
       }
 
-      // Update total purchase and total payment of user
-      const isUpdated = await this.changeUserPurchases(cartProducts, user);
+      if (quantity === 0) {
+        throw new BadRequestException(ERROR_MSG.cant_be_added);
+      }
+
+      // Check for sufficient quantity
+      if (product.quantity < quantity) {
+        throw new BadRequestException(ERROR_MSG.not_enough_products);
+      }
+
+      const productToAdd = new CartProductsEntity();
+      productToAdd.products = product;
+      productToAdd.users = user;
+      productToAdd.quantity = quantity;
+      productToAdd.status = CartStatus.SOLD; // Mark the product as sold in cart
+
+      const isSaved = await this.cartProductRepository.save(productToAdd);
+
+      // Check if product is added to cart
+      if (!isSaved) {
+        throw new BadRequestException(DATABASE_ERROR_MSG.add_to_cart);
+      }
+
+      // Update product quantity in ProductsEntity
+      const updatedQuantityProduct = new ProductsEntity();
+      updatedQuantityProduct.quantity = product.quantity - quantity;
+
+      const isUpdated = await this.productsRepository.update(
+        id,
+        updatedQuantityProduct,
+      );
+
+      // Check if product quantity is updated
       if (!isUpdated) {
         throw new BadRequestException(DATABASE_ERROR_MSG.product_update);
       }
 
+      // Update user's total purchases and total payments
+      const isUserUpdated = await this.changeUserPurchases(
+        [productToAdd],
+        user,
+      );
+      if (!isUserUpdated) {
+        throw new BadRequestException(DATABASE_ERROR_MSG.product_update);
+      }
+
       return ResponseMap(
-        { success: true },
+        {
+          productToAdd,
+        },
         SUCCESS_MSG.product_purchase_success,
       );
     } catch (error) {

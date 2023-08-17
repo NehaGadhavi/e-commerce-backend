@@ -118,12 +118,13 @@ export class AuthService {
     }
   }
 
-  async googleLogin(req, res) {
+  async googleLogin(req, res) {    
     // Redirect to frontend
-    const jwtToken = req.user.google_access_token;
-    res.redirect(`${process.env.FRONTEND_URL}?query=${jwtToken}`);
+    // const jwtToken = req.user.google_access_token;
+    // res.redirect(`${process.env.FRONTEND_URL}?query=${jwtToken}`);
 
     const userData = req.user;
+
     if (!req.user) {
       throw new BadRequestException(ERROR_MSG.user_not_found);
     }
@@ -144,28 +145,13 @@ export class AuthService {
       user.id = alreadyUser.id;
     }
 
-    const tokenResponse = await this.getUsersResponse(user);
+    const tokenResponse = await this.getUserResponse(user);
 
     const resultResponse: Record<string, unknown> = {
       ...tokenResponse,
-      user: user,
-    };
-    return ResponseMap(resultResponse);
-  }
-
-  async getUsersResponse(user: UsersEntity) {
-    // Access Token Generation
-    const payload: JwtExePayload = {
-      created_by: user.email,
-      id: user.id,
     };
 
-    let access_token = await this.jwtService.signAsync(payload);
-
-    return {
-      access_token,
-      expires: expired,
-    };
+    res.status(200).send(resultResponse);
   }
 
   async getAllUsers(user: UsersEntity, page: number = 1, limit: number = 10) {
