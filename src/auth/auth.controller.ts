@@ -89,6 +89,26 @@ export class AuthController {
     return await this.authService.getAllUsers(user, page, limit);
   }
 
+  @ApiOperation({ summary: 'Get profile' })
+  @Get('user')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoles.Customer) // Restrict to Customer role
+  async getUserById(
+    @User() user: UsersEntity
+  ) {
+    return await this.authService.getUserById(user);
+  }
+
+  @ApiOperation({ summary: 'Update profile' })
+  @Patch('update_user')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async updateProfile(
+    @User() user: UsersEntity,
+    @Body() userData: UpdateAdminDto
+  ) {
+    return await this.authService.updateProfile(user, userData);
+  }
+
   /**
    *
    * @param adminDto name, email, password, roles, dob, gender, address for admin

@@ -76,13 +76,29 @@ export class AuthService {
 
     return {
       token,
-      expires: expired,
     };
   }
 
   async registerUser(registerUserDto: RegisterUserDto): GlobalResponseType {
     try {
       const hashed = await bcrypt.hash(registerUserDto.password, 12);
+
+      // Calculate the user's age based on the provided date of birth
+      const dob = new Date(registerUserDto.dob);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < dob.getDate())
+      ) {
+        age = age -1;
+      }
+
+      // Check if the user is above 18 years old
+      if (age < 18) {
+        throw new BadRequestException(ERROR_MSG.invalid_age);
+      }
 
       // Check if already registered
       const foundUser = await this.userRepository.findOne({
@@ -148,10 +164,12 @@ export class AuthService {
     const resultResponse: Record<string, unknown> = {
       ...tokenResponse,
     };
-    
-    // res.redirect(`${process.env.FRONTEND_URL}?query=${resultResponse.token}`);
-      
-     res.status(200).send(`${process.env.FRONTEND_URL}?query=${resultResponse.token}`);
+
+    // res.redirect(`${process.env.FRONTEND_URL}/login?code=${resultResponse.token}`);
+
+    res
+      .status(200)
+      .send(`${process.env.FRONTEND_URL}?query=${resultResponse.token}`);
   }
 
   async getAllUsers(user: UsersEntity, page: number = 1, limit: number = 10) {
@@ -182,6 +200,40 @@ export class AuthService {
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async getUserById(user: UsersEntity): GlobalResponseType {
+    const loggedUser = await this.userRepository.findOne({
+      where: { id: user.id },
+    });
+
+    const { password, roles, ...customer } = loggedUser;
+
+    return ResponseMap({ customer });
+  }
+
+  async updateProfile(user: UsersEntity, userData: UpdateAdminDto) {
+    const loggedUser = await this.userRepository.findOne({
+      where: { id: user.id },
+    });
+
+    if (!loggedUser) {
+      throw new BadRequestException(ERROR_MSG.user_not_found);
+    }
+
+    loggedUser.username = userData.username;
+    // loggedUser.password = userData.password;
+    loggedUser.dob = userData.dob;
+    loggedUser.gender = userData.gender;
+    loggedUser.address = userData.address;
+
+    const updatedUser = await this.userRepository.update(user.id, loggedUser);
+
+    if (!updatedUser) {
+      throw new BadRequestException(DATABASE_ERROR_MSG.profile_not_updated);
+    }
+
+    return ResponseMap({ updatedUser }, SUCCESS_MSG.profile_update_success);
   }
 
   async addAdmin(adminDto: RegisterUserDto): GlobalResponseType {

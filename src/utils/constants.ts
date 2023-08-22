@@ -48,12 +48,12 @@ export const DtoErrorMessage = {
   empty_price: 'Price should not be empty',
   empty_quantity: 'Quantity should not be empty',
   empty_category: 'Category shoul not be empty',
-  empty_firstName: 'First Name should not be empty',
-  empty_lastName: 'Last Name should not be empty',
+  empty_name: 'Name should not be empty',
+  // empty_lastName: 'Last Name should not be empty',
   empty_addressLine1: 'Address line1 should not be empty',
   empty_addressLine2: 'Address line2 should not be empty',
   empty_city: 'City name should not be empty',
-  empty_zipPostal: 'Zip/Postal should not be empty',
+  // empty_zipPostal: 'Zip/Postal should not be empty',
   empty_country: 'Country name should not be empty',
   empty_zipCode: 'Zip code should not be empty',
 };
@@ -75,6 +75,7 @@ export const SUCCESS_MSG = {
   product_purchase_success: 'Product purchased successfully.',
   cart_update_success: 'Cart product updated successfully.',
   details_saved_success: 'Details saved successfully.',
+  profile_update_success: 'Profile updated successfully',
 };
 
 export const ERROR_MSG = {
@@ -92,6 +93,7 @@ export const ERROR_MSG = {
   no_products_to_buy: 'Oops, There are no products in cart!',
   cant_be_added: 'Product with 0 quantity cannot be added to cart!',
   unauthorized_error: 'Sorry, you are not authorized!',
+  invalid_age: 'Sorry, you cant register before 18!',
 };
 
 export const DATABASE_ERROR_MSG = {
@@ -105,6 +107,7 @@ export const DATABASE_ERROR_MSG = {
   product_save: 'Product not saved!',
   shippingDetails_save: 'Shipping details not saved!',
   product_in_cart: 'This product is already added by someone in cart!',
+  profile_not_updated: 'Profile not updated!',
 };
 
 export const loginData = {
@@ -129,13 +132,13 @@ export const mockUser: UsersEntity = {
   // Mock user data
   id: 1,
   roles: UserRoles.ViewerAdmin,
-  username: '',
-  email: '',
-  password: '',
+  username: 'tester',
+  email: 'tester@gmail.com',
+  password: 'Tester@123',
   cartProducts: [],
   gender: GenderCategory.Men,
   dob: '',
-  address: '',
+  address: 'Amdavad',
   total_purchase: 0,
   total_payment: 0,
   validatePassword: function (attempt: string): Promise<boolean> {

@@ -85,7 +85,18 @@ export class ProductsService {
 
   async getProduct(id: number) {
     try {
-      return await this.productsRepository.findOne({ where: { id } });
+      const product = await this.productsRepository.findOne({ where: { id } });
+      const cartProducts = await this.cartProductRepository
+        .createQueryBuilder('cart')
+        .andWhere('cart.productsId = :productId', { productId: product.id })
+        .andWhere('cart.status = :status', { status: CartStatus.IN_CART })
+        .getOne();
+
+      if(cartProducts){
+        return {product, quantityInCart: cartProducts.quantity}
+      } else{
+        return {product};
+      }
     } catch (error) {
       throw new HttpException(
         error,
@@ -340,20 +351,31 @@ export class ProductsService {
         throw new BadRequestException(ERROR_MSG.not_enough_products);
       }
 
-      const productToAdd = new CartProductsEntity();
-      productToAdd.products = product;
-      productToAdd.users = user;
-      productToAdd.quantity = Number(cartDto.quantity);
-      if (cartDto.status) {
-        productToAdd.status = cartDto.status;
-      } else {
-        productToAdd.status = CartStatus.IN_CART;
-      }
-      const isSaved = await this.cartProductRepository.save(productToAdd);
+      const existingCartItem = await this.cartProductRepository
+        .createQueryBuilder('cart')
+        .where('cart.usersId = :userId', { userId: user.id })
+        .andWhere('cart.productsId = :productId', { productId: product.id })
+        .andWhere('cart.status = :status', { status: CartStatus.IN_CART })
+        .getOne();
 
-      // Check if product is added to cart
-      if (!isSaved) {
-        throw new BadRequestException(DATABASE_ERROR_MSG.add_to_cart);
+      let productToAdd;
+      if (existingCartItem) {
+        // Update the quantity in the existing cart item
+        existingCartItem.quantity =
+          Number(existingCartItem.quantity) + Number(cartDto.quantity);
+        await this.cartProductRepository.save(existingCartItem);
+      } else {
+        // Create a new cart item
+        productToAdd = new CartProductsEntity();
+        productToAdd.products = product;
+        productToAdd.users = user;
+        productToAdd.quantity = Number(cartDto.quantity);
+        if (cartDto.status) {
+          productToAdd.status = cartDto.status;
+        } else {
+          productToAdd.status = CartStatus.IN_CART;
+        }
+        await this.cartProductRepository.save(productToAdd);
       }
 
       const updatedQuantityProduct = new ProductsEntity();
@@ -373,7 +395,7 @@ export class ProductsService {
         {
           productToAdd,
         },
-        SUCCESS_MSG.add_to_cart_success,
+        // SUCCESS_MSG.add_to_cart_success,
       );
     } catch (error) {
       throw new HttpException(
@@ -587,18 +609,17 @@ export class ProductsService {
     shippingDto: ShippingDetailsDto,
   ): GlobalResponseType {
     try {
-      const shippingDetails = await this.shippingRepository.save({
-        first_name: shippingDto.first_name,
-        last_name: shippingDto.last_name,
-        email: shippingDto.email,
-        address_line1: shippingDto.address_line1,
-        address_line2: shippingDto.address_line2,
-        city: shippingDto.city,
-        zip_postal: shippingDto.zip_postal,
-        country: shippingDto.country,
-        zip_code: shippingDto.zip_code,
-        bought_by: user.id,
-      });
+      const details = new ShippingDetailsEntity();
+      details.name = shippingDto.name;
+      details.email = shippingDto.email;
+      details.address_line1 = shippingDto.address_line1;
+      details.address_line2 = shippingDto.address_line2;
+      details.city = shippingDto.city;
+      details.zip_code = shippingDto.zip_code;
+      details.country = shippingDto.country;
+      details.bought_by = user.id;
+
+      const shippingDetails = await this.shippingRepository.save(details);
 
       if (!shippingDetails) {
         throw new BadRequestException(DATABASE_ERROR_MSG.shippingDetails_save);

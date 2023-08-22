@@ -6,10 +6,10 @@ export class ShippingDetailsEntity extends BaseEntity{
     id: number;
 
     @Column({ default: null })
-    first_name: string;
+    name: string;
 
-    @Column({ default: null })
-    last_name: string;
+    // @Column({ default: null })
+    // last_name: string;
 
     @Column({ default: null })
     email: string;
@@ -23,8 +23,8 @@ export class ShippingDetailsEntity extends BaseEntity{
     @Column({ default: null })
     city: string;
 
-    @Column({ default: null })
-    zip_postal: string;
+    // @Column({ default: null })
+    // zip_postal: string;
 
     @Column({ default: null })
     country: string;

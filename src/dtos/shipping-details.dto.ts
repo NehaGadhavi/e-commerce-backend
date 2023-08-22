@@ -7,12 +7,12 @@ export class ShippingDetailsDto{
     id: number;
 
     @ApiProperty()
-    @IsNotEmpty({ message: DtoErrorMessage.empty_firstName })
-    first_name: string;
+    @IsNotEmpty({ message: DtoErrorMessage.empty_name })
+    name: string;
 
-    @ApiProperty()
-    @IsNotEmpty({ message: DtoErrorMessage.empty_lastName })
-    last_name: string;
+    // @ApiProperty()
+    // @IsNotEmpty({ message: DtoErrorMessage.empty_lastName })
+    // last_name: string;
 
     @ApiProperty()
     @IsNotEmpty({ message: DtoErrorMessage.empty_email })
@@ -30,9 +30,9 @@ export class ShippingDetailsDto{
     @IsNotEmpty({ message: DtoErrorMessage.empty_city })
     city: string;
 
-    @ApiProperty()
-    @IsNotEmpty({ message: DtoErrorMessage.empty_zipPostal })
-    zip_postal: string;
+    // @ApiProperty()
+    // @IsNotEmpty({ message: DtoErrorMessage.empty_zipPostal })
+    // zip_postal: string;
 
     @ApiProperty()
     @IsNotEmpty({ message: DtoErrorMessage.empty_country })
