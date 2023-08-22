@@ -74,8 +74,6 @@ export class AuthController {
   @Get('/google/callback')
   @UseGuards(AuthGuard('google'))
   async callback(@Req() req, @Res() res: Response) {
-    console.log("hello");
-    
     return this.authService.googleLogin(req, res);
   }
 
@@ -87,7 +85,7 @@ export class AuthController {
     @User() user: UsersEntity,
     @Query('page', ParseIntPipe) page: number = 1,
     @Query('limit', ParseIntPipe) limit: number = 10,
-  ) {    
+  ) {
     return await this.authService.getAllUsers(user, page, limit);
   }
 
@@ -102,11 +100,8 @@ export class AuthController {
   @UsePipes(ValidationPipe)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
-  async addAdmin(
-    @Body() adminDto: RegisterUserDto,
-    @User() user: UsersEntity,
-  ): GlobalResponseType {
-    return await this.authService.addAdmin(adminDto, user);
+  async addAdmin(@Body() adminDto: RegisterUserDto): GlobalResponseType {
+    return await this.authService.addAdmin(adminDto);
   }
 
   /**

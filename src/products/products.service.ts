@@ -153,7 +153,7 @@ export class ProductsService {
 
       const page: number = parseInt(req.query.page as any) || 1;
       const perPage = parseInt(req.query.limit as any) || 5;
-      const total = await builder.getCount();
+      const totalCount = await builder.getCount();
 
       builder.offset((page - 1) * perPage).limit(perPage);
 
@@ -165,9 +165,9 @@ export class ProductsService {
 
       return {
         data: data,
-        total,
+        totalCount,
         page,
-        last_page: Math.ceil(total / perPage),
+        last_page: Math.ceil(totalCount / perPage),
       };
     } catch (error) {
       throw new HttpException(
@@ -195,7 +195,6 @@ export class ProductsService {
       //     product[key] = ProductDto[key];
       //   }
       // });
-      console.log(productDto);
 
       product.id = id;
       product.product_name = productDto?.product_name;
@@ -261,23 +260,23 @@ export class ProductsService {
       if (result.affected !== 0 && isInCart === 0) {
         const imagePath = product.product_img; // Get the image path from the product
         // Delete the image from the local public folder
-        if (imagePath) {
-          const absoluteImagePath = path.resolve(
-            __dirname,
-            '..',
-            '..',
-            'public',
-            imagePath,
-          );
+        // if (imagePath) {
+        //   const absoluteImagePath = path.resolve(
+        //     __dirname,
+        //     '..',
+        //     '..',
+        //     'public',
+        //     imagePath,
+        //   );
 
-          if (absoluteImagePath) {
-            try {
-              await unlink(absoluteImagePath);
-            } catch (error) {
-              console.error('Error deleting image:', error);
-            }
-          }
-        }
+        //   if (absoluteImagePath) {
+        //     try {
+        //       await unlink(absoluteImagePath);
+        //     } catch (error) {
+        //       console.error('Error deleting image:', error);
+        //     }
+        //   }
+        // }
       }
 
       return ResponseMap(
@@ -452,8 +451,6 @@ export class ProductsService {
 
   async purchaseProduct(user: UsersEntity): GlobalResponseType {
     try {
-      console.log("purchase");
-
       const cartProducts = await this.cartProductRepository
         .createQueryBuilder('cart')
         .leftJoinAndSelect('cart.users', 'users')
@@ -581,7 +578,7 @@ export class ProductsService {
       {
         isUpdated: true,
       },
-      SUCCESS_MSG.cart_update_success,
+      // SUCCESS_MSG.cart_update_success,
     );
   }
 
@@ -611,16 +608,21 @@ export class ProductsService {
       if (shippingDto.$isCalledFromCart) {
         const isPurchased = await this.purchaseProduct(user);
 
-        console.log('isPurchased', isPurchased);
-
         if (!isPurchased) {
           throw new BadRequestException(DATABASE_ERROR_MSG.product_purchase);
         }
+
+        return ResponseMap(
+          {
+            shippingDetails,
+          },
+          SUCCESS_MSG.product_purchase_success,
+        );
       }
 
       return ResponseMap(
         { shippingDetails },
-        SUCCESS_MSG.details_saved_success,
+        // SUCCESS_MSG.details_saved_success,
       );
     } catch (error) {
       throw new HttpException(
@@ -636,8 +638,6 @@ export class ProductsService {
     user: UsersEntity,
   ): GlobalResponseType {
     try {
-      console.log("buy now");
-      
       const product = await this.productsRepository.findOne({ where: { id } });
 
       if (!product) {

@@ -19,6 +19,7 @@ export class CreateProductDto {
   price: number;
 
   @ApiProperty()
+  @IsNotEmpty({ message: DtoErrorMessage.empty_description })
   description: string;
 
   @ApiProperty()

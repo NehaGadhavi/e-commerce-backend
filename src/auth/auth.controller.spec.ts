@@ -1,31 +1,27 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
-import { loginData, registerData } from '../utils/constants';
+import { adminData, loginData, mockSuperAdmin, mockUser, registerData } from '../utils/constants';
 import { AuthService } from './auth.service';
 import { GenderCategory, UserRoles } from '../utils/enums';
 import { UsersEntity } from './users.entity';
 import { SaveOptions, RemoveOptions } from 'typeorm';
+import { RegisterUserDto } from '../dtos/user.dto';
 
 describe('AuthController', () => {
   let controller: AuthController;
   const mockAuthService = {
-    loginUser: jest.fn((loginData) => {
-      return {
-        id: Date.now(),
-        ...loginData,
-      };
-    }),
 
-    registerUser: jest.fn((registerData) => {
-      return {
-        id: Date.now(),
-        ...registerData,
-      }
-    }),
+    loginUser: jest.fn(),
 
-    // getAllUsers: jest.fn(),
+    registerUser: jest.fn(),
 
-    
+    getAllUsers: jest.fn(),
+
+    addAdmin: jest.fn(),
+
+    removeUser: jest.fn(),
+
+    updateAdmin: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -44,82 +40,153 @@ describe('AuthController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('should login user', () => {
-    expect(controller.login(loginData)).toEqual({
-      id: expect.any(Number),
-      ...loginData,
-    });
-  });
+  // it('should login user', () => {
+  //   expect(controller.login(loginData)).toEqual({
+  //     id: expect.any(Number),
+  //     ...loginData,
+  //   });
+  // });
 
-  it('should register user', () => {
-    expect(controller.registration(registerData)).toEqual({
-      id: expect.any(Number),
-      ...registerData
+  // it('should register user', () => {
+  //   expect(controller.registration(registerData)).toEqual({
+  //     id: expect.any(Number),
+  //     ...registerData
+  //   })
+  // });
+
+  describe('loginUser', () => {
+    it('should login user', async () => {
+      const expectedResult = {
+        tokenResponse: {
+          token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+          expires: expect.any(Number),
+        }
+      };
+
+      mockAuthService.loginUser.mockResolvedValue(expectedResult);
+
+      const result = await controller.login(loginData);
+
+      expect(result).toEqual(expectedResult);
+      expect(mockAuthService.loginUser).toHaveBeenCalledWith(loginData);
     })
   });
 
-  // describe('getAllUsers', () => {
-  //   it('should get all users successfully', async () => {
-  //     const mockUser: UsersEntity = {
-  //       // Mock user data
-  //       id: 1,
-  //       roles: UserRoles.ViewerAdmin,
-  //       username: '',
-  //       email: '',
-  //       password: '',
-  //       cartProducts: [],
-  //       gender: GenderCategory.Men,
-  //       dob: '',
-  //       address: '',
-  //       total_purchase: 0,
-  //       total_payment: 0,
-  //       validatePassword: function (attempt: string): Promise<boolean> {
-  //         throw new Error('Function not implemented.');
-  //       },
-  //       hasId: function (): boolean {
-  //         throw new Error('Function not implemented.');
-  //       },
-  //       save: function (options?: SaveOptions): Promise<UsersEntity> {
-  //         throw new Error('Function not implemented.');
-  //       },
-  //       remove: function (options?: RemoveOptions): Promise<UsersEntity> {
-  //         throw new Error('Function not implemented.');
-  //       },
-  //       softRemove: function (options?: SaveOptions): Promise<UsersEntity> {
-  //         throw new Error('Function not implemented.');
-  //       },
-  //       recover: function (options?: SaveOptions): Promise<UsersEntity> {
-  //         throw new Error('Function not implemented.');
-  //       },
-  //       reload: function (): Promise<void> {
-  //         throw new Error('Function not implemented.');
-  //       }
-  //     };
+  describe('registerUser', () => {
+    it('should register user', async () => {
+      const expectedResult = {
+        savedUser: {
+          id: expect.any(Number),
+          ...registerData,
+        }
+      };
 
-  //     const mockPage = 1;
-  //     const mockLimit = 10;
+      mockAuthService.registerUser.mockResolvedValue(expectedResult);
 
-  //     const mockUsersData = [
-  //       // Mocked user data array
-  //       { id: 1, username: 'user1', roles: UserRoles.ViewerAdmin },
-  //       { id: 2, username: 'user2', roles: UserRoles.ViewerAdmin },
-  //     ];
+      const result = await controller.registration(registerData);
 
-  //     const expectedResult = {
-  //       data: mockUsersData,
-  //       totalCount: mockUsersData.length,
-  //     };
+      expect(result).toEqual(expectedResult);
+      expect(mockAuthService.registerUser).toHaveBeenCalledWith(registerData);
+    })
+  })
 
-  //     // Mock the service method
-  //     mockAuthService.getAllUsers.mockResolvedValue(expectedResult);
 
-  //     const result = await controller.getAllUsers(mockUser, mockPage, mockLimit);
+  describe('getAllUsers', () => {
+    it('should get all users', async () => {
 
-  //     expect(result).toEqual(expectedResult);
-  //     expect(mockAuthService.getAllUsers).toHaveBeenCalledWith(mockUser, mockPage, mockLimit);
-  //   });
+      const mockPage = 1;
+      const mockLimit = 10;
 
-  //   // Add more test cases for getAllUsers if needed
-  // });
+      const mockUsersData = [
+        // Mocked user data array
+        { id: 1, username: 'user1', roles: UserRoles.ViewerAdmin },
+        { id: 2, username: 'user2', roles: UserRoles.ViewerAdmin },
+      ];
+
+      const expectedResult = {
+        data: mockUsersData,
+        totalCount: mockUsersData.length,
+      };
+
+      // Mock the service method
+      mockAuthService.getAllUsers.mockResolvedValue(expectedResult);
+
+      const result = await controller.getAllUsers(mockUser, mockPage, mockLimit);
+
+      expect(result).toEqual(expectedResult);
+      expect(mockAuthService.getAllUsers).toHaveBeenCalledWith(mockUser, mockPage, mockLimit);
+    });
+
+  });
+
+  describe('addAdmin', () => {
+    it('should add admin', async () => {
+      
+      const expectedResult = {
+        savedUser: {
+          id: expect.any(Number),
+          username: adminData.username,
+          email: adminData.email,
+          gender: adminData.gender,
+          dob: adminData.dob,
+          address: adminData.address,
+        },
+      };
+
+      // Mock the service method
+      mockAuthService.addAdmin.mockResolvedValue(expectedResult);
+
+      const result = await controller.addAdmin(adminData);
+
+      expect(result).toEqual(expectedResult);
+      expect(mockAuthService.addAdmin).toHaveBeenCalledWith(adminData);
+    });
+
+  });
+
+  describe('removeUser', () => {
+    it('should delete user',async () => {
+      const expectedResult = {
+        success: true
+      };
+
+      // Mock the service method
+      mockAuthService.removeUser.mockResolvedValue(expectedResult);
+      const mockId = Date.now();
+
+      const result = await controller.removeUser(mockId);
+
+      expect(result).toEqual(expectedResult);
+      expect(mockAuthService.removeUser).toHaveBeenCalledWith(mockId);
+    });
+  });
+
+  describe('updateAdmin', () => {
+    it('should update admin', async () => {
+      const mockId = 1;
+
+      const expectedResult = {
+        savedAdmin: {
+          id: mockId,
+          username: adminData.username,
+          email: adminData.email,
+          gender: adminData.gender,
+          dob: adminData.dob,
+          address: adminData.address,
+          // ... other properties
+        },
+      };
+
+      // Mock the service method
+      mockAuthService.updateAdmin.mockResolvedValue(expectedResult);
+
+      const result = await controller.updateAdmin(adminData, mockId, mockSuperAdmin);
+
+      expect(result).toEqual(expectedResult);
+      expect(mockAuthService.updateAdmin).toHaveBeenCalledWith(mockId, adminData, mockSuperAdmin);
+    });
+
+  });
+
   
 });

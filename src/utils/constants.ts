@@ -1,3 +1,5 @@
+import { UsersEntity } from '../auth/users.entity';
+import { SaveOptions, RemoveOptions } from 'typeorm';
 import { GenderCategory, UserRoles } from './enums';
 
 export const GOOGLE_CLIENT_ID =
@@ -32,7 +34,12 @@ export const DtoErrorMessage = {
   username: 'Username should not be greater than 50 character.',
   empty_username: 'Username should not be empty!',
   empty_password: 'Password should not be empty!',
+  empty_description: 'Description should not be empty!',
+  empty_image: 'Image field should not be empty!',
   empty_email: 'Email should no be empty',
+  empty_dob: 'Date of Birth should nt be empty',
+  empty_gender: 'Gender should not be empty',
+  empty_address: 'Address should not be empty',
   password:
     'Password must contain 8-10 characters, Password must include numbers',
   invalid_email: 'Invalid email entered!',
@@ -52,11 +59,11 @@ export const DtoErrorMessage = {
 };
 
 export const passwordValidation =
-  /(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).*$/;
+/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=]).{8,}$/;
 
 export const SUCCESS_MSG = {
   user_register_success: 'User registered successfully.',
-  user_login_success: 'User logged in successfully.',
+  user_login_success: 'You have logged in successfully.',
   admin_register_success: 'Admin added successfully.',
   user_delete_succes: 'User removed successfully.',
   admin_update_success: 'Admin details updated successfully.',
@@ -111,6 +118,90 @@ export const registerData = {
   password: 'Testcase@123',
   email: 'testcase@gmail.com',
   roles: UserRoles.Customer,
+  dob: '2023-08-31T07:24:45.391Z',
+  gender: GenderCategory.Men,
+  address: 'testing address',
+  total_purchase: 0,
+  total_payment: 0,
+}
+
+export const mockUser: UsersEntity = {
+  // Mock user data
+  id: 1,
+  roles: UserRoles.ViewerAdmin,
+  username: '',
+  email: '',
+  password: '',
+  cartProducts: [],
+  gender: GenderCategory.Men,
+  dob: '',
+  address: '',
+  total_purchase: 0,
+  total_payment: 0,
+  validatePassword: function (attempt: string): Promise<boolean> {
+    throw new Error('Function not implemented.');
+  },
+  hasId: function (): boolean {
+    throw new Error('Function not implemented.');
+  },
+  save: function (options?: SaveOptions): Promise<UsersEntity> {
+    throw new Error('Function not implemented.');
+  },
+  remove: function (options?: RemoveOptions): Promise<UsersEntity> {
+    throw new Error('Function not implemented.');
+  },
+  softRemove: function (options?: SaveOptions): Promise<UsersEntity> {
+    throw new Error('Function not implemented.');
+  },
+  recover: function (options?: SaveOptions): Promise<UsersEntity> {
+    throw new Error('Function not implemented.');
+  },
+  reload: function (): Promise<void> {
+    throw new Error('Function not implemented.');
+  }
+};
+
+export const mockSuperAdmin: UsersEntity = {
+  // Mock super admin data
+  id: 1,
+  roles: UserRoles.SuperAdmin,
+  username: '',
+  email: '',
+  password: '',
+  cartProducts: [],
+  gender: GenderCategory.Men,
+  dob: '',
+  address: '',
+  total_purchase: 0,
+  total_payment: 0,
+  validatePassword: function (attempt: string): Promise<boolean> {
+    throw new Error('Function not implemented.');
+  },
+  hasId: function (): boolean {
+    throw new Error('Function not implemented.');
+  },
+  save: function (options?: SaveOptions): Promise<UsersEntity> {
+    throw new Error('Function not implemented.');
+  },
+  remove: function (options?: RemoveOptions): Promise<UsersEntity> {
+    throw new Error('Function not implemented.');
+  },
+  softRemove: function (options?: SaveOptions): Promise<UsersEntity> {
+    throw new Error('Function not implemented.');
+  },
+  recover: function (options?: SaveOptions): Promise<UsersEntity> {
+    throw new Error('Function not implemented.');
+  },
+  reload: function (): Promise<void> {
+    throw new Error('Function not implemented.');
+  }
+}
+
+export const adminData = {
+  username: 'testAdmin',
+  password: 'testAdmin@123',
+  email: 'testadmin@gmail.com',
+  roles: UserRoles.ViewerAdmin,
   dob: '2023-08-31T07:24:45.391Z',
   gender: GenderCategory.Men,
   address: 'testing address',

@@ -3,21 +3,19 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserLoginDto } from '../dtos/user-login.dto';
 import { UsersEntity } from './users.entity';
-import { Not, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { RegisterUserDto, UpdateAdminDto } from '../dtos/user.dto';
 import {
   DATABASE_ERROR_MSG,
   ERROR_MSG,
-  JwtExePayload,
   JwtPayload,
   ResponseMap,
   SUCCESS_MSG,
@@ -118,7 +116,7 @@ export class AuthService {
     }
   }
 
-  async googleLogin(req, res) {    
+  async googleLogin(req, res) {
     // Redirect to frontend
     // const jwtToken = req.user.google_access_token;
     // res.redirect(`${process.env.FRONTEND_URL}?query=${jwtToken}`);
@@ -150,26 +148,30 @@ export class AuthService {
     const resultResponse: Record<string, unknown> = {
       ...tokenResponse,
     };
-
-    res.status(200).send(resultResponse);
+    
+    // res.redirect(`${process.env.FRONTEND_URL}?query=${resultResponse.token}`);
+      
+     res.status(200).send(`${process.env.FRONTEND_URL}?query=${resultResponse.token}`);
   }
 
   async getAllUsers(user: UsersEntity, page: number = 1, limit: number = 10) {
     try {
       const skip = (page - 1) * limit;
-  
+
       const usersQuery = this.userRepository
         .createQueryBuilder('user')
-        .where('user.roles != :superAdminRole', { superAdminRole: UserRoles.SuperAdmin })
+        .where('user.roles != :superAdminRole', {
+          superAdminRole: UserRoles.SuperAdmin,
+        })
         .take(limit)
         .skip(skip);
-  
+
       const users = await usersQuery.getMany();
-  
+
       const totalCount = await usersQuery.getCount();
-  
+
       const transformedUsers = users.map((user) => omit(user, 'password'));
-  
+
       return {
         data: transformedUsers,
         totalCount,
@@ -181,11 +183,8 @@ export class AuthService {
       );
     }
   }
-  
-  async addAdmin(
-    adminDto: RegisterUserDto,
-    user: UsersEntity,
-  ): GlobalResponseType {
+
+  async addAdmin(adminDto: RegisterUserDto): GlobalResponseType {
     try {
       const hashed = await bcrypt.hash(adminDto.password, 12);
 

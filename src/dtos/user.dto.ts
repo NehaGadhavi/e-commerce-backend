@@ -33,12 +33,15 @@ export class RegisterUserDto {
   roles: UserRoles;
 
   @ApiProperty()
+  @IsNotEmpty({ message: DtoErrorMessage.empty_dob })
   dob: string;
 
   @ApiProperty()
+  @IsNotEmpty({ message: DtoErrorMessage.empty_gender })
   gender: GenderCategory;
 
   @ApiProperty()
+  @IsNotEmpty({ message: DtoErrorMessage.empty_address })
   @IsString()
   address: string;
 
