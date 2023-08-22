@@ -50,12 +50,12 @@ export const DtoErrorMessage = {
   empty_category: 'Category shoul not be empty',
   empty_name: 'Name should not be empty',
   // empty_lastName: 'Last Name should not be empty',
-  empty_addressLine1: 'Address line1 should not be empty',
-  empty_addressLine2: 'Address line2 should not be empty',
+  // empty_address: 'Address should not be empty',
+  // empty_addressLine2: 'Address line2 should not be empty',
   empty_city: 'City name should not be empty',
   // empty_zipPostal: 'Zip/Postal should not be empty',
   empty_country: 'Country name should not be empty',
-  empty_zipCode: 'Zip code should not be empty',
+  empty_pinCode: 'Pin code should not be empty',
 };
 
 export const passwordValidation =

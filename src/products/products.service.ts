@@ -83,14 +83,21 @@ export class ProductsService {
     }
   }
 
-  async getProduct(id: number) {
+  async getProduct(id: number, user: UsersEntity) {
     try {
+      //need to be changed
+      console.log(user);
+      
       const product = await this.productsRepository.findOne({ where: { id } });
       const cartProducts = await this.cartProductRepository
         .createQueryBuilder('cart')
         .andWhere('cart.productsId = :productId', { productId: product.id })
+        .andWhere('cart.usersId = :userId', {userId: user.id})
         .andWhere('cart.status = :status', { status: CartStatus.IN_CART })
         .getOne();
+
+        console.log(cartProducts);
+        
 
       if(cartProducts){
         return {product, quantityInCart: cartProducts.quantity}
@@ -612,10 +619,10 @@ export class ProductsService {
       const details = new ShippingDetailsEntity();
       details.name = shippingDto.name;
       details.email = shippingDto.email;
-      details.address_line1 = shippingDto.address_line1;
-      details.address_line2 = shippingDto.address_line2;
+      details.address = shippingDto.address;
+      // details.address_line2 = shippingDto.address_line2;
       details.city = shippingDto.city;
-      details.zip_code = shippingDto.zip_code;
+      details.pin_code = shippingDto.pin_code;
       details.country = shippingDto.country;
       details.bought_by = user.id;
 

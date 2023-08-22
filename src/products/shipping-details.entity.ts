@@ -15,10 +15,10 @@ export class ShippingDetailsEntity extends BaseEntity{
     email: string;
 
     @Column({ default: null })
-    address_line1: string;
+    address: string;
 
-    @Column({ default: null })
-    address_line2: string;
+    // @Column({ default: null })
+    // address_line2: string;
 
     @Column({ default: null })
     city: string;
@@ -30,7 +30,7 @@ export class ShippingDetailsEntity extends BaseEntity{
     country: string;
 
     @Column({ default: null })
-    zip_code: string;
+    pin_code: string;
 
     @Column({ default: null })
     bought_by: number;

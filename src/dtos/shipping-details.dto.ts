@@ -19,12 +19,12 @@ export class ShippingDetailsDto{
     email: string;
 
     @ApiProperty()
-    @IsNotEmpty({ message: DtoErrorMessage.empty_addressLine1 })
-    address_line1: string;
+    @IsNotEmpty({ message: DtoErrorMessage.empty_address })
+    address: string;
 
-    @ApiProperty()
-    @IsNotEmpty({ message: DtoErrorMessage.empty_addressLine2 })
-    address_line2: string;
+    // @ApiProperty()
+    // @IsNotEmpty({ message: DtoErrorMessage.empty_addressLine2 })
+    // address_line2: string;
 
     @ApiProperty()
     @IsNotEmpty({ message: DtoErrorMessage.empty_city })
@@ -39,8 +39,8 @@ export class ShippingDetailsDto{
     country: string;
 
     @ApiProperty()
-    @IsNotEmpty({ message: DtoErrorMessage.empty_zipCode })
-    zip_code: string;
+    @IsNotEmpty({ message: DtoErrorMessage.empty_pinCode })
+    pin_code: string;
 
     @ApiProperty()
     @IsOptional()

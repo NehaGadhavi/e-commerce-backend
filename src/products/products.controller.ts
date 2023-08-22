@@ -58,8 +58,9 @@ export class ProductsController {
 
   @ApiOperation({ summary: 'Get product by id' })
   @Get('product/:id')
-  async getProduct(@Param('id') id: number) {
-    return await this.productsService.getProduct(id);
+  @UseGuards(JwtAuthGuard)
+  async getProduct(@Param('id') id: number, @User() user: UsersEntity) {
+    return await this.productsService.getProduct(id, user);
   }
 
   @ApiOperation({ summary: 'Add new product' })
