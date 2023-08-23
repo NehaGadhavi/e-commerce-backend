@@ -24,12 +24,15 @@ import {
 import { UserRoles } from '../utils/enums';
 import { omit } from 'lodash';
 import { GlobalResponseType } from '../utils/types';
+import { CartProductsEntity } from 'src/products/cart-products.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(UsersEntity)
     private userRepository: Repository<UsersEntity>,
+    @InjectRepository(CartProductsEntity)
+    private cartProductRepository: Repository<CartProductsEntity>,
     private jwtService: JwtService,
   ) {}
 
@@ -165,7 +168,7 @@ export class AuthService {
       ...tokenResponse,
     };
 
-    // res.redirect(`${process.env.FRONTEND_URL}/login?code=${resultResponse.token}`);
+    res.redirect(`${process.env.FRONTEND_URL}/login?code=${resultResponse.token}`);
 
     res
       .status(200)
@@ -275,7 +278,15 @@ export class AuthService {
 
   async removeUser(id: number): GlobalResponseType {
     try {
-      // const user = await this.userRepository.findOne({ where: { id } });
+      // Check if user is active in cart
+      const isInCart = await this.cartProductRepository.count({
+        where: {
+          users: { id },
+        },
+      });
+      if(isInCart>0){
+        throw new BadRequestException(ERROR_MSG.active_user);
+      }
 
       const result = await this.userRepository.delete({ id });
       if (result.affected === 0) {

@@ -6,7 +6,7 @@ import { UsersEntity } from '../auth/users.entity';
 import { ERROR_MSG } from '../utils/constants';
 import { Repository } from 'typeorm';
 
-export class jwtCustomStrategy extends PassportStrategy(Strategy) {
+export class jwtCustomStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
     @InjectRepository(UsersEntity)
     private userRepository: Repository<UsersEntity>,
@@ -18,16 +18,19 @@ export class jwtCustomStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload) {
-    const { email } = payload;
+    try {
 
-    const user = await this.userRepository.findOne({
-      where: { email },
-    });
+      const user = await this.userRepository.findOne({
+        where: { email: payload.email },
+      });
 
-    if (!user) {
-      throw new UnauthorizedException(ERROR_MSG.unauthorized_error);
+      if (!user) {
+        throw new UnauthorizedException(ERROR_MSG.unauthorized_error);
+      }
+
+      return user;
+    } catch (error) {
+      console.log('JWT validate() Error.');
     }
-
-    return user;
   }
 }

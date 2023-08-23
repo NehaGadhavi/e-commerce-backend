@@ -94,6 +94,7 @@ export const ERROR_MSG = {
   cant_be_added: 'Product with 0 quantity cannot be added to cart!',
   unauthorized_error: 'Sorry, you are not authorized!',
   invalid_age: 'Sorry, you cant register before 18!',
+  active_user: 'This user is active, you should not delete!',
 };
 
 export const DATABASE_ERROR_MSG = {

@@ -7,10 +7,11 @@ import { UsersEntity } from '../auth/users.entity';
 import { PassportModule } from '@nestjs/passport';
 import { jwtCustomStrategy } from './jwt-custom-strategy';
 import { GoogleStrategy } from './google.strategy';
+import { CartProductsEntity } from 'src/products/cart-products.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UsersEntity]),
+    TypeOrmModule.forFeature([UsersEntity, CartProductsEntity]),
     JwtModule.register({
       secret: 'sdwe4DFSD3sasweftyjab',
       signOptions: {

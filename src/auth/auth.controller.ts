@@ -91,8 +91,7 @@ export class AuthController {
 
   @ApiOperation({ summary: 'Get profile' })
   @Get('user')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoles.Customer) // Restrict to Customer role
+  @UseGuards(JwtAuthGuard)
   async getUserById(
     @User() user: UsersEntity
   ) {
@@ -101,7 +100,7 @@ export class AuthController {
 
   @ApiOperation({ summary: 'Update profile' })
   @Patch('update_user')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   async updateProfile(
     @User() user: UsersEntity,
     @Body() userData: UpdateAdminDto
