@@ -24,7 +24,7 @@ import {
 import { UserRoles } from '../utils/enums';
 import { omit } from 'lodash';
 import { GlobalResponseType } from '../utils/types';
-import { CartProductsEntity } from 'src/products/cart-products.entity';
+import { CartProductsEntity } from '../products/cart-products.entity';
 
 @Injectable()
 export class AuthService {

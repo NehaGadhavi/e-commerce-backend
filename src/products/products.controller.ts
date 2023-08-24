@@ -85,9 +85,9 @@ export class ProductsController {
   async updateProduct(
     @Req() req: Request,
     @Body() product: UpdateProductDto,
-    @UploadedFile() image: Express.Multer.File,
     @User() user: UsersEntity,
-  ): GlobalResponseType {
+    @UploadedFile() image?: Express.Multer.File,
+  ): GlobalResponseType {    
     return await this.productsService.updateProduct(
       Number(req.params.id),
       product,

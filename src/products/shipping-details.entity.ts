@@ -8,23 +8,14 @@ export class ShippingDetailsEntity extends BaseEntity{
     @Column({ default: null })
     name: string;
 
-    // @Column({ default: null })
-    // last_name: string;
-
     @Column({ default: null })
     email: string;
 
     @Column({ default: null })
     address: string;
 
-    // @Column({ default: null })
-    // address_line2: string;
-
     @Column({ default: null })
     city: string;
-
-    // @Column({ default: null })
-    // zip_postal: string;
 
     @Column({ default: null })
     country: string;

@@ -25,7 +25,7 @@ describe('AuthService', () => {
       ],
       imports: [
         JwtModule.register({
-          secret: 'sdwe4DFSD3sasweftyjab',
+          secret: process.env.SECRET,
           signOptions: { expiresIn: '1h' },
         }),
       ],

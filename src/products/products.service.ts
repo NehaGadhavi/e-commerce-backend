@@ -198,7 +198,7 @@ export class ProductsService {
     id: number,
     productDto: UpdateProductDto,
     user: UsersEntity,
-    image: Express.Multer.File,
+    image?: Express.Multer.File,
   ): GlobalResponseType {
     try {
       const product = await this.productsRepository.findOne({ where: { id } });
@@ -220,10 +220,8 @@ export class ProductsService {
       product.quantity = Number(productDto?.quantity);
       product.category = Number(productDto?.category);
       // Update the image path or link to the database
-      if (image.filename) {
+      if (image && image.filename) {
         product.product_img = 'uploads/' + image.filename;
-      } else {
-        product.product_img = '';
       }
 
       const isUpdated = await this.productsRepository.update(id, product);
@@ -391,7 +389,7 @@ export class ProductsService {
 
       return ResponseMap(
         {
-          productToAdd,
+          success: true,
         },
         // SUCCESS_MSG.add_to_cart_success,
       );
@@ -596,14 +594,20 @@ export class ProductsService {
     // Update cart product quantity
     cartProduct.quantity = quantity;
 
-    // Update product quantity based on quantity difference
-    product.quantity = product.quantity - quantityDifference;
+    const isUpdated = await this.cartProductRepository.update(cartProduct.id, cartProduct);
 
-    // Save changes using transaction
-    await this.entityManager.transaction(async (transactionalEntityManager) => {
-      await transactionalEntityManager.save(CartProductsEntity, cartProduct);
-      await transactionalEntityManager.save(ProductsEntity, product);
-    });
+    if(!isUpdated){
+      throw new BadRequestException(DATABASE_ERROR_MSG.quantity_not_updated);
+    }
+
+    // // Update product quantity based on quantity difference
+    // product.quantity = product.quantity - quantityDifference;
+
+    // // Save changes using transaction
+    // await this.entityManager.transaction(async (transactionalEntityManager) => {
+    //   await transactionalEntityManager.save(CartProductsEntity, cartProduct);
+    //   await transactionalEntityManager.save(ProductsEntity, product);
+    // });
 
     return ResponseMap(
       {
@@ -622,7 +626,6 @@ export class ProductsService {
       details.name = shippingDto.name;
       details.email = shippingDto.email;
       details.address = shippingDto.address;
-      // details.address_line2 = shippingDto.address_line2;
       details.city = shippingDto.city;
       details.pin_code = shippingDto.pin_code;
       details.country = shippingDto.country;

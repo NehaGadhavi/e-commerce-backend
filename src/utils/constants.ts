@@ -1,11 +1,8 @@
 import { UsersEntity } from '../auth/users.entity';
 import { SaveOptions, RemoveOptions } from 'typeorm';
 import { GenderCategory, UserRoles } from './enums';
-
-export const GOOGLE_CLIENT_ID =
-  '252306307767-p74ur0m74vtd0vb8035bd7raimph6jhs.apps.googleusercontent.com';
-export const GOOGLE_SECRET = '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';
-export const GOOGLE_CALLBACK_URL = 'http://localhost:8000/auth/google/callback';
+import { ProductsEntity } from '../products/products.entity';
+import { CartProductsEntity } from '../products/cart-products.entity';
 
 export interface JwtExePayload {
   created_by: string;
@@ -49,17 +46,13 @@ export const DtoErrorMessage = {
   empty_quantity: 'Quantity should not be empty',
   empty_category: 'Category shoul not be empty',
   empty_name: 'Name should not be empty',
-  // empty_lastName: 'Last Name should not be empty',
-  // empty_address: 'Address should not be empty',
-  // empty_addressLine2: 'Address line2 should not be empty',
   empty_city: 'City name should not be empty',
-  // empty_zipPostal: 'Zip/Postal should not be empty',
   empty_country: 'Country name should not be empty',
   empty_pinCode: 'Pin code should not be empty',
 };
 
 export const passwordValidation =
-/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=]).{8,}$/;
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=]).{8,}$/;
 
 export const SUCCESS_MSG = {
   user_register_success: 'User registered successfully.',
@@ -109,13 +102,14 @@ export const DATABASE_ERROR_MSG = {
   shippingDetails_save: 'Shipping details not saved!',
   product_in_cart: 'This product is already added by someone in cart!',
   profile_not_updated: 'Profile not updated!',
+  quantity_not_updated: 'Quantity not yet updated!',
 };
 
 export const loginData = {
   email: 'yash@gmail.com',
   password: 'Yash@123',
   roles: UserRoles.Customer,
-}
+};
 
 export const registerData = {
   username: 'testcase',
@@ -127,7 +121,7 @@ export const registerData = {
   address: 'testing address',
   total_purchase: 0,
   total_payment: 0,
-}
+};
 
 export const mockUser: UsersEntity = {
   // Mock user data
@@ -162,7 +156,7 @@ export const mockUser: UsersEntity = {
   },
   reload: function (): Promise<void> {
     throw new Error('Function not implemented.');
-  }
+  },
 };
 
 export const mockSuperAdmin: UsersEntity = {
@@ -198,8 +192,8 @@ export const mockSuperAdmin: UsersEntity = {
   },
   reload: function (): Promise<void> {
     throw new Error('Function not implemented.');
-  }
-}
+  },
+};
 
 export const adminData = {
   username: 'testAdmin',
@@ -211,4 +205,33 @@ export const adminData = {
   address: 'testing address',
   total_purchase: 0,
   total_payment: 0,
-}
+};
+
+export const mockProduct: ProductsEntity = {
+  id: 1,
+  product_name: 'testing product',
+  description: 'test',
+  price: 0,
+  product_img: 'image',
+  quantity: 0,
+  category: GenderCategory.Men,
+  cartProducts: new CartProductsEntity,
+  hasId: function (): boolean {
+    throw new Error('Function not implemented.');
+  },
+  save: function (options?: SaveOptions): Promise<ProductsEntity> {
+    throw new Error('Function not implemented.');
+  },
+  remove: function (options?: RemoveOptions): Promise<ProductsEntity> {
+    throw new Error('Function not implemented.');
+  },
+  softRemove: function (options?: SaveOptions): Promise<ProductsEntity> {
+    throw new Error('Function not implemented.');
+  },
+  recover: function (options?: SaveOptions): Promise<ProductsEntity> {
+    throw new Error('Function not implemented.');
+  },
+  reload: function (): Promise<void> {
+    throw new Error('Function not implemented.');
+  }
+};
