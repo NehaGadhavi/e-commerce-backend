@@ -241,7 +241,7 @@ export class ProductsService {
 
       return ResponseMap(
         {
-          updatedProduct,
+          success: true,
         },
         SUCCESS_MSG.product_update_success,
       );
@@ -378,7 +378,10 @@ export class ProductsService {
         } else {
           productToAdd.status = CartStatus.IN_CART;
         }
-        await this.cartProductRepository.save(productToAdd);
+        const savedProduct = await this.cartProductRepository.save(productToAdd);
+        if(!savedProduct){
+          throw new BadRequestException(DATABASE_ERROR_MSG.add_to_cart);
+        }
       }
 
       // const updatedQuantityProduct = new ProductsEntity();
@@ -658,14 +661,14 @@ export class ProductsService {
 
         return ResponseMap(
           {
-            shippingDetails,
+            success: true,
           },
           SUCCESS_MSG.product_purchase_success,
         );
       }
 
       return ResponseMap(
-        { shippingDetails },
+        { success:true },
         // SUCCESS_MSG.details_saved_success,
       );
     } catch (error) {
@@ -735,7 +738,7 @@ export class ProductsService {
 
       return ResponseMap(
         {
-          productToAdd,
+          success: true,
         },
         SUCCESS_MSG.product_purchase_success,
       );

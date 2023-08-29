@@ -120,10 +120,10 @@ export class AuthService {
         address: registerUserDto.address,
       });
 
-      const { password, ...savedUser } = user;
+      // const { password, ...savedUser } = user;
       return ResponseMap(
         {
-          savedUser,
+          success: true,
         },
         SUCCESS_MSG.user_register_success,
       );
@@ -170,9 +170,9 @@ export class AuthService {
 
     res.redirect(`${process.env.FRONTEND_URL}/login?code=${resultResponse.token}`);
 
-    res
-      .status(200)
-      .send(`${process.env.FRONTEND_URL}?query=${resultResponse.token}`);
+    // res
+    //   .status(200)
+    //   .send(`${process.env.FRONTEND_URL}?query=${resultResponse.token}`);
   }
 
   async getAllUsers(user: UsersEntity, page: number = 1, limit: number = 10) {
@@ -183,6 +183,9 @@ export class AuthService {
         .createQueryBuilder('user')
         .where('user.roles != :superAdminRole', {
           superAdminRole: UserRoles.SuperAdmin,
+        })
+        .andWhere('user.roles != :adminRole', {
+          adminRole: UserRoles.ViewerAdmin,
         })
         .take(limit)
         .skip(skip);
@@ -195,6 +198,38 @@ export class AuthService {
 
       return {
         data: transformedUsers,
+        totalCount,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  async getAllAdmin(user: UsersEntity, page: number, limit: number){
+    try {
+      const skip = (page - 1) * limit;
+
+      const usersQuery = this.userRepository
+        .createQueryBuilder('user')
+        .where('user.roles != :superAdminRole', {
+          superAdminRole: UserRoles.SuperAdmin,
+        })
+        .andWhere('user.roles != :userRole', {
+          userRole: UserRoles.Customer,
+        })
+        .take(limit)
+        .skip(skip);
+
+      const admins = await usersQuery.getMany();
+
+      const totalCount = await usersQuery.getCount();
+
+      const transformedAdmins = admins.map((user) => omit(user, 'password'));
+
+      return {
+        data: transformedAdmins,
         totalCount,
       };
     } catch (error) {
@@ -236,7 +271,7 @@ export class AuthService {
       throw new BadRequestException(DATABASE_ERROR_MSG.profile_not_updated);
     }
 
-    return ResponseMap({ updatedUser }, SUCCESS_MSG.profile_update_success);
+    return ResponseMap({ success: true }, SUCCESS_MSG.profile_update_success);
   }
 
   async addAdmin(adminDto: RegisterUserDto): GlobalResponseType {
@@ -261,10 +296,10 @@ export class AuthService {
         roles: UserRoles.ViewerAdmin,
       });
 
-      const { password, ...savedUser } = admin;
+      // const { password, ...savedUser } = admin;
       return ResponseMap(
         {
-          savedUser,
+          success: true,
         },
         SUCCESS_MSG.admin_register_success,
       );
@@ -330,7 +365,7 @@ export class AuthService {
       const savedAdmin = await this.userRepository.update(admin.id, admin);
       return ResponseMap(
         {
-          savedAdmin,
+          success: true,
         },
         SUCCESS_MSG.admin_update_success,
       );

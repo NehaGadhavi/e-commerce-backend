@@ -89,6 +89,18 @@ export class AuthController {
     return await this.authService.getAllUsers(user, page, limit);
   }
 
+  @ApiOperation({ summary: 'Get all admins' })
+  @Get('admins')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoles.SuperAdmin) // Restrict to SuperAdmin role
+  async getAllAdmin(
+    @User() user: UsersEntity,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 10,
+  ){
+    return await this.authService.getAllAdmin(user, page, limit);
+  }
+
   @ApiOperation({ summary: 'Get profile' })
   @Get('user')
   @UseGuards(JwtAuthGuard)
