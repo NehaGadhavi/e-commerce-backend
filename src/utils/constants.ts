@@ -72,6 +72,7 @@ export const SUCCESS_MSG = {
 };
 
 export const ERROR_MSG = {
+  already_added_admin: 'Admin already exist!',
   already_registered: 'Already registered user!',
   user_not_found: 'No user found',
   invalid_credential: 'Invalid credentials.',

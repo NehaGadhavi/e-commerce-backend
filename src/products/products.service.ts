@@ -85,6 +85,11 @@ export class ProductsService {
   async getProduct(id: number, userId?: number) {
     try {
       const product = await this.productsRepository.findOne({ where: { id } });
+
+      if(!product){
+        throw new BadRequestException(ERROR_MSG.product_not_found);
+      }
+
       if (userId) {
         const cartProducts = await this.cartProductRepository
           .createQueryBuilder('cart')
@@ -342,17 +347,19 @@ export class ProductsService {
         throw new BadRequestException(ERROR_MSG.cant_be_added);
       }
 
-      // Check for sufficient quantity
-      if (product.quantity < cartDto.quantity) {
-        throw new BadRequestException(ERROR_MSG.not_enough_products);
-      }
-
       const existingCartItem = await this.cartProductRepository
         .createQueryBuilder('cart')
         .where('cart.usersId = :userId', { userId: user.id })
         .andWhere('cart.productsId = :productId', { productId: product.id })
         .andWhere('cart.status = :status', { status: CartStatus.IN_CART })
         .getOne();
+
+      // Check for sufficient quantity
+      if (existingCartItem) {
+        if (product.quantity < existingCartItem.quantity + cartDto.quantity) {
+          throw new BadRequestException(ERROR_MSG.not_enough_products);
+        }
+      }
 
       let productToAdd;
       if (existingCartItem) {
@@ -447,90 +454,91 @@ export class ProductsService {
     }
   }
 
-  async updateQuantityInProduct(
-    foundProduct: ProductsEntity,
-    toBeRemoved: CartProductsEntity,
-  ) {
-    // Update quantity in Products table
-    const updatedQuantityProduct = new ProductsEntity();
-    updatedQuantityProduct.quantity =
-      foundProduct.quantity + toBeRemoved.quantity;
-    const isUpdated = await this.productsRepository.update(
-      toBeRemoved.products.id,
-      updatedQuantityProduct,
-    );
+  // async updateQuantityInProduct(
+  //   foundProduct: ProductsEntity,
+  //   toBeRemoved: CartProductsEntity,
+  // ) {
+  //   // Update quantity in Products table
+  //   const updatedQuantityProduct = new ProductsEntity();
+  //   updatedQuantityProduct.quantity =
+  //     foundProduct.quantity + toBeRemoved.quantity;
+  //   const isUpdated = await this.productsRepository.update(
+  //     toBeRemoved.products.id,
+  //     updatedQuantityProduct,
+  //   );
 
-    if (isUpdated) {
-      return true;
-    } else {
-      return false;
-    }
-  }
+  //   if (isUpdated) {
+  //     return true;
+  //   } else {
+  //     return false;
+  //   }
+  // }
 
   async purchaseProduct(user: UsersEntity): GlobalResponseType {
-    return this.entityManager.transaction(async (transactionalEntityManager) => {
-      try {
-        const cartProducts = await this.cartProductRepository
-          .createQueryBuilder('cart')
-          .leftJoinAndSelect('cart.users', 'users')
-          .leftJoinAndSelect('cart.products', 'products')
-          .where('cart.users.id = :userId', { userId: user.id })
-          .andWhere('cart.status = :status', { status: CartStatus.IN_CART })
-          .getMany();
-  
-        if (cartProducts.length === 0) {
-          throw new NotFoundException(ERROR_MSG.no_products_to_buy);
-        }
-  
-        const hasSoldProducts = cartProducts.some(
-          (product) => product.status === CartStatus.SOLD,
-        );
-  
-        if (hasSoldProducts) {
-          throw new BadRequestException(ERROR_MSG.already_bought);
-        }
-  
-        const productIdsToUpdate = cartProducts.map(
-          (cartProduct) => cartProduct.id,
-        );
-  
-        const result = await this.cartProductRepository.update(
-          productIdsToUpdate,
-          {
-            status: CartStatus.SOLD,
-          },
-        );
-  
-        if (result.affected === 0) {
-          throw new NotFoundException(DATABASE_ERROR_MSG.product_purchase);
-        }
-  
-        // Update total purchase and total payment of user
-        const isUpdated = await this.changeUserPurchases(cartProducts, user);
-        if (!isUpdated) {
-          throw new BadRequestException(DATABASE_ERROR_MSG.product_update);
-        }
+    return this.entityManager.transaction(
+      async (transactionalEntityManager) => {
+        try {
+          const cartProducts = await this.cartProductRepository
+            .createQueryBuilder('cart')
+            .leftJoinAndSelect('cart.users', 'users')
+            .leftJoinAndSelect('cart.products', 'products')
+            .where('cart.users.id = :userId', { userId: user.id })
+            .andWhere('cart.status = :status', { status: CartStatus.IN_CART })
+            .getMany();
 
-        // Update product quantities in the products table
-        for (const cartProduct of cartProducts) {
-          const product = cartProduct.products;
-          product.quantity -= cartProduct.quantity;
+          if (cartProducts.length === 0) {
+            throw new NotFoundException(ERROR_MSG.no_products_to_buy);
+          }
 
-          await transactionalEntityManager.save(product); // Save the updated product quantity
+          const hasSoldProducts = cartProducts.some(
+            (product) => product.status === CartStatus.SOLD,
+          );
+
+          if (hasSoldProducts) {
+            throw new BadRequestException(ERROR_MSG.already_bought);
+          }
+
+          const productIdsToUpdate = cartProducts.map(
+            (cartProduct) => cartProduct.id,
+          );
+
+          const result = await this.cartProductRepository.update(
+            productIdsToUpdate,
+            {
+              status: CartStatus.SOLD,
+            },
+          );
+
+          if (result.affected === 0) {
+            throw new NotFoundException(DATABASE_ERROR_MSG.product_purchase);
+          }
+
+          // Update total purchase and total payment of user
+          const isUpdated = await this.changeUserPurchases(cartProducts, user);
+          if (!isUpdated) {
+            throw new BadRequestException(DATABASE_ERROR_MSG.product_update);
+          }
+
+          // Update product quantities in the products table
+          for (const cartProduct of cartProducts) {
+            const product = cartProduct.products;
+            product.quantity -= cartProduct.quantity;
+
+            await transactionalEntityManager.save(product); // Save the updated product quantity
+          }
+
+          return ResponseMap(
+            { success: true },
+            SUCCESS_MSG.product_purchase_success,
+          );
+        } catch (error) {
+          throw new HttpException(
+            error,
+            error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+          );
         }
-  
-        return ResponseMap(
-          { success: true },
-          SUCCESS_MSG.product_purchase_success,
-        );
-      } catch (error) {
-        throw new HttpException(
-          error,
-          error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-    })
-    
+      },
+    );
   }
 
   async changeUserPurchases(
@@ -587,16 +595,19 @@ export class ProductsService {
     const quantityDifference = quantity - cartProduct.quantity;
 
     // Check if there are enough products available in products table
-    if (product.quantity < quantityDifference) {
+    if ((product.quantity - cartProduct.quantity) < quantityDifference) {
       throw new BadRequestException(ERROR_MSG.not_enough_products);
     }
 
     // Update cart product quantity
     cartProduct.quantity = quantity;
 
-    const isUpdated = await this.cartProductRepository.update(cartProduct.id, cartProduct);
+    const isUpdated = await this.cartProductRepository.update(
+      cartProduct.id,
+      cartProduct,
+    );
 
-    if(!isUpdated){
+    if (!isUpdated) {
       throw new BadRequestException(DATABASE_ERROR_MSG.quantity_not_updated);
     }
 

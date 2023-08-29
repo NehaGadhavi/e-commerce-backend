@@ -248,7 +248,7 @@ export class AuthService {
         where: { email: adminDto.email },
       });
       if (foundUser) {
-        throw new BadRequestException(ERROR_MSG.already_registered);
+        throw new BadRequestException(ERROR_MSG.already_added_admin);
       }
 
       const admin = await this.userRepository.save({
