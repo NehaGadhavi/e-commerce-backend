@@ -194,7 +194,7 @@ export class AuthService {
 
       const totalCount = await usersQuery.getCount();
 
-      const transformedUsers = users.map((user) => omit(user, 'password'));
+      const transformedUsers = users.map((user) => omit(user, 'password', 'address', 'dob', 'gender', 'roles'));
 
       return {
         data: transformedUsers,
@@ -226,7 +226,7 @@ export class AuthService {
 
       const totalCount = await usersQuery.getCount();
 
-      const transformedAdmins = admins.map((user) => omit(user, 'password'));
+      const transformedAdmins = admins.map((user) => omit(user, 'password', 'roles', 'gender', 'dob', 'address', 'total_purchase', 'total_payment'));
 
       return {
         data: transformedAdmins,
@@ -245,7 +245,7 @@ export class AuthService {
       where: { id: user.id },
     });
 
-    const { password, roles, ...customer } = loggedUser;
+    const { password, roles, total_payment, total_purchase, ...customer } = loggedUser;
 
     return ResponseMap({ customer });
   }
@@ -280,10 +280,17 @@ export class AuthService {
 
       // Check if already registered
       const foundUser = await this.userRepository.findOne({
-        where: { email: adminDto.email },
+        where: { email: adminDto.email, roles: 1 },
       });
       if (foundUser) {
         throw new BadRequestException(ERROR_MSG.already_added_admin);
+      }
+
+      const customer = await this.userRepository.findOne({
+        where: {email: adminDto.email, roles: 2}
+      });
+      if(customer){
+        throw new BadRequestException(ERROR_MSG.registerd_as_customer);
       }
 
       const admin = await this.userRepository.save({

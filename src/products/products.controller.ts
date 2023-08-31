@@ -44,8 +44,8 @@ export class ProductsController {
   async getAllProducts(
     @Query('page', ParseIntPipe) page: number,
     @Query('limit', ParseIntPipe) limit: number,
-    @Query('category') categoty: number | null,
-    @Query('sortOrder') sortOrder: 'asc' | 'desc',
+    @Query('category') categoty?: number | null,
+    @Query('sortOrder') sortOrder?: 'asc' | 'desc',
   ) {
     return await this.productsService.getAllProducts(page, limit, categoty, sortOrder);
   }

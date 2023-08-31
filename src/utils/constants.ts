@@ -89,6 +89,7 @@ export const ERROR_MSG = {
   unauthorized_error: 'Sorry, you are not authorized!',
   invalid_age: 'Sorry, you cant register before 18!',
   active_user: 'This user is active, you should not delete!',
+  registerd_as_customer: 'This user is already registered as customer!',
 };
 
 export const DATABASE_ERROR_MSG = {
