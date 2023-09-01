@@ -12,6 +12,7 @@ export class CreateProductDto {
 
   @ApiProperty()
   @IsNotEmpty({ message: DtoErrorMessage.empty_productName })
+  @IsString()
   product_name: string;
 
   @ApiProperty()
@@ -20,6 +21,7 @@ export class CreateProductDto {
 
   @ApiProperty()
   @IsNotEmpty({ message: DtoErrorMessage.empty_description })
+  @IsString()
   description: string;
 
   @ApiProperty()

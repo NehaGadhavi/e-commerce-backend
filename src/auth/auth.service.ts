@@ -330,16 +330,29 @@ export class AuthService {
         throw new BadRequestException(ERROR_MSG.active_user);
       }
 
+      const user = await this.userRepository.findOne({where: {id}});        
+
       const result = await this.userRepository.delete({ id });
       if (result.affected === 0) {
         throw new NotFoundException(DATABASE_ERROR_MSG.user_delete);
       } else {
-        return ResponseMap(
-          {
-            success: true,
-          },
-          SUCCESS_MSG.user_delete_succes,
-        );
+        if(user.roles === UserRoles.Customer){
+          return ResponseMap(
+            {
+              success: true,
+            },
+            SUCCESS_MSG.user_delete_succes,
+          );
+        }
+        if(user.roles === UserRoles.ViewerAdmin){
+          return ResponseMap(
+            {
+              success: true,
+            },
+            SUCCESS_MSG.admin_delete_success,
+          )
+        }
+        
       }
     } catch (error) {
       throw new HttpException(

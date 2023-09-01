@@ -144,7 +144,7 @@ export class ProductsService {
 
       return ResponseMap(
         {
-          savedProduct,
+          success: true,
         },
         SUCCESS_MSG.product_add_success,
       );
@@ -280,23 +280,23 @@ export class ProductsService {
       if (result.affected !== 0 && isInCart === 0) {
         const imagePath = product.product_img; // Get the image path from the product
         // Delete the image from the local public folder
-        // if (imagePath) {
-        //   const absoluteImagePath = path.resolve(
-        //     __dirname,
-        //     '..',
-        //     '..',
-        //     'public',
-        //     imagePath,
-        //   );
+        if (imagePath) {
+          const absoluteImagePath = path.resolve(
+            __dirname,
+            '..',
+            '..',
+            'public',
+            imagePath,
+          );
 
-        //   if (absoluteImagePath) {
-        //     try {
-        //       await unlink(absoluteImagePath);
-        //     } catch (error) {
-        //       console.error('Error deleting image:', error);
-        //     }
-        //   }
-        // }
+          if (absoluteImagePath) {
+            try {
+              await unlink(absoluteImagePath);
+            } catch (error) {
+              console.error('Error deleting image:', error);
+            }
+          }
+        }
       }
 
       return ResponseMap(

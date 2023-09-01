@@ -59,6 +59,7 @@ export const SUCCESS_MSG = {
   user_login_success: 'You have logged in successfully.',
   admin_register_success: 'Admin added successfully.',
   user_delete_succes: 'User removed successfully.',
+  admin_delete_success: 'Admin removed successfully',
   admin_update_success: 'Admin details updated successfully.',
   product_add_success: 'Product added successfully.',
   product_update_success: 'Product updated successfully.',
