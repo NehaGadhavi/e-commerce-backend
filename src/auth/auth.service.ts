@@ -4,7 +4,6 @@ import {
   HttpStatus,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserLoginDto } from '../dtos/user-login.dto';
@@ -46,7 +45,7 @@ export class AuthService {
       });
 
       if (!user) {
-        throw new UnauthorizedException(ERROR_MSG.user_not_found);
+        throw new BadRequestException(ERROR_MSG.user_not_found);
       }
 
       // Password check
